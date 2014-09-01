@@ -1,0 +1,6 @@
+*.DS_Store
+[Ii]gnore*/
+.idea/
+*.pyc
+*.mmdb
+config.py
