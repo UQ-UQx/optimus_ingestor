@@ -1,3 +1,6 @@
+"""
+Deals with the webserver and the service modules
+"""
 import importlib
 import BaseHTTPServer
 import SimpleHTTPServer
@@ -15,6 +18,9 @@ ServerPort = 8850
 
 
 class ServiceManager():
+    """
+    Manages service modules
+    """
 
     servicethreads = []
     servicemodules = []
@@ -26,6 +32,9 @@ class ServiceManager():
         self.autoload()
 
     def autoload(self):
+        """
+        Loads each module
+        """
         servicespath = os.path.join(basepath, 'services')
         for servicename in os.listdir(servicespath):
             if servicename not in config.IGNORE_SERVICES:
@@ -40,11 +49,14 @@ class ServiceManager():
                     #self.servicethreads.append(servicethread)
 
     def setup_ingest_database(self):
+        """
+        Ensures that the required DB and tables exist
+        """
         warnings.filterwarnings('ignore', category=MySQLdb.Warning)
         #Create and connect to the API database
         try:
             self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api')
-        except MySQLdb.OperationalError, e:
+        except MySQLdb.OperationalError:
             self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='mysql')
             cur = self.sql_db.cursor()
             cur.execute("CREATE DATABASE API")
@@ -60,6 +72,12 @@ class ServiceManager():
         warnings.filterwarnings('always', category=MySQLdb.Warning)
 
     def add_to_ingestion(self, service_name, ingest_type, meta):
+        """
+        Inserts a line into the ingestion table
+        :param meta: any information the service needs
+        :param ingest_type: the type of the ingestion
+        :param service_name: the name of the service
+        """
         insert = True
         cur = self.sql_db.cursor()
         #Check if entry already exists
@@ -67,7 +85,7 @@ class ServiceManager():
         cur.execute(query)
         for row in cur.fetchall():
             if int(row[0]) > 0:
-               insert = False
+                insert = False
         if insert:
             #Insert the new entry
             created = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -76,10 +94,20 @@ class ServiceManager():
             cur.execute(query)
             self.sql_db.commit()
 
-    def start_ingest(self, id):
+    def start_ingest(self, entry_id):
+        """
+        Starts an ingestion entry
+        :param entry_id: the ID of the ingestion entry
+        """
+        cur = self.sql_db.cursor()
         pass
 
-    def finish_ingest(self, id):
+    def finish_ingest(self, entry_id):
+        """
+        Finishes an ingestion entry
+        :param entry_id: the ID of the ingestion entry
+        """
+        cur = self.sql_db.cursor()
         pass
 
 
@@ -103,6 +131,9 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     servicehandler = None
 
     def runmodule(self, modulename, meta):
+        """
+        Executes a module to run (usually a module which does not loop)
+        """
         servicespath = os.path.join(basepath, 'services')
         servicepath = os.path.join(servicespath, modulename, 'service.py')
         if os.path.exists(servicepath):

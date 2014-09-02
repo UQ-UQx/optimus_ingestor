@@ -1,3 +1,6 @@
+"""
+Initiates the Ingestor
+"""
 #!/usr/bin/env python
 
 import utils
