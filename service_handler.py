@@ -95,13 +95,15 @@ def queue_data(servicehandler):
 
 
 class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+    """
+    Responds to HTTP Requests
+    """
 
     response = 0
     servicehandler = None
 
     def runmodule(self, modulename, meta):
         servicespath = os.path.join(basepath, 'services')
-        servicename = modulename
         servicepath = os.path.join(servicespath, modulename, 'service.py')
         if os.path.exists(servicepath):
             pass
@@ -112,6 +114,9 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             #servicethread.start()
 
     def do_GET(self):
+        """
+        Response to GET requests
+        """
         response = {}
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
@@ -125,7 +130,7 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         elif "newdata":
             response['response'] = 'Could not queue data'
             response['statuscode'] = 500
-            if queue_data(servicehandler):
+            if queue_data(self.servicehandler):
                 response['response'] = 'Data successfully queued'
                 response['statuscode'] = 200
         elif "/":
@@ -138,10 +143,15 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
 
 class ThreadedHTTPServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
-
+    """
+    Threaded HTTP Server
+    """
     allow_reuse_address = True
 
     def shutdown(self):
+        """
+        Shuts down the HTTP Server
+        """
         self.socket.close()
         BaseHTTPServer.HTTPServer.shutdown(self)
 
@@ -167,21 +177,24 @@ class Servicehandler():
         self.setup_webserver()
 
     def setup_webserver(self):
+        """
+        Creates and starts the web server
+        """
         RequestHandler.servicehandler = self
-        queue_data(self)
         server_address = ('0.0.0.0', ServerPort)
         RequestHandler.protocol_version = Protocol
         self.server = ThreadedHTTPServer(server_address, RequestHandler)
         log("Starting Web Server")
-        self.start_webserver()
-        log("Sleeping Main Thread")
-        self.sleepmainthread()
-
-    def sleepmainthread(self):
-        sleep(2)
-        self.sleepmainthread()
-
-    def start_webserver(self):
         self.server_thread = threading.Thread(target=self.server.serve_forever)
         self.server_thread.daemon = True
         self.server_thread.start()
+        #@todo remove this
+        queue_data(self)
+        self.sleepmainthread()
+
+    def sleepmainthread(self):
+        """
+        Sleeps the main thread
+        """
+        sleep(2)
+        self.sleepmainthread()

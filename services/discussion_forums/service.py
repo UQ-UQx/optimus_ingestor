@@ -2,7 +2,7 @@ import base_service
 import os
 import utils
 
-class DatabaseState(base_service.BaseService):
+class DiscussionForums(base_service.BaseService):
     pass
 
 
@@ -16,8 +16,8 @@ def get_files(path):
     main_path = os.path.join(path, 'database_state', 'latest')
     for filename in os.listdir(main_path):
         extension = os.path.splitext(filename)[1]
-        if extension == '.sql':
-            required_files.append(os.path.join(main_path,filename))
+        if extension == '.mongo':
+            required_files.append(os.path.join(main_path, filename))
     return required_files
 
 
@@ -25,11 +25,11 @@ def name():
     """
     Returns the name of the service class
     """
-    return "DatabaseState"
+    return "DiscussionForums"
 
 
 def service():
     """
     Returns an instance of the service
     """
-    return DatabaseState()
+    return DiscussionForums()
