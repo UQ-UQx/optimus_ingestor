@@ -13,8 +13,6 @@ import warnings
 Protocol = "HTTP/1.0"
 ServerPort = 8850
 
-from services.database_state.service import load_file
-
 
 class ServiceManager():
 
@@ -61,17 +59,22 @@ class ServiceManager():
         cur.execute(query)
         warnings.filterwarnings('always', category=MySQLdb.Warning)
 
-    def add_to_ingestion(self, service_name, type, meta):
+    def add_to_ingestion(self, service_name, ingest_type, meta):
+        insert = True
         cur = self.sql_db.cursor()
-        created = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        query = "INSERT INTO ingestor "
-        query += "(service_name,type,meta,created) VALUES ("
-        query += '"'+service_name+'","'+type+'","'+meta+'","'+created+'"'
-        query += ");"
-        print query
+        #Check if entry already exists
+        query = 'SELECT count(*) FROM ingestor WHERE service_name="' + service_name + '" AND type="' + ingest_type + '" AND meta="' + meta + '";'
         cur.execute(query)
-        self.sql_db.commit()
-        pass
+        for row in cur.fetchall():
+            if int(row[0]) > 0:
+               insert = False
+        if insert:
+            #Insert the new entry
+            created = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            query = 'INSERT INTO ingestor (service_name,type,meta,created) VALUES ('
+            query += '"'+service_name+'","'+ingest_type+'","'+meta+'","'+created+'");'
+            cur.execute(query)
+            self.sql_db.commit()
 
     def start_ingest(self, id):
         pass
@@ -87,7 +90,7 @@ def queue_data(servicehandler):
             for required_file in required_files:
                 #Add file to the ingestion table
                 pass
-                servicehandler.manager.add_to_ingestion(service_module.name, 'file', os.path.realpath(required_file))
+                servicehandler.manager.add_to_ingestion(service_module.name(), 'file', required_file)
     return True
 
 

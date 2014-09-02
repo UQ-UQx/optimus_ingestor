@@ -15,4 +15,10 @@ def get_files(path):
             required_files.append(os.path.join(main_path,filename))
     return required_files
 
-name = "Database_State"
+
+def name():
+    return "Database_State"
+
+
+def service():
+    return Database_State()
