@@ -62,13 +62,12 @@ class ServiceManager():
             cur.execute("CREATE DATABASE API")
             self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api')
         if self.sql_db:
-            print "ALL GOOD"
-        #Create the ingestor table if necessary
-        cur = self.sql_db.cursor()
-        query = "CREATE TABLE IF NOT EXISTS ingestor ( "
-        query += "id int NOT NULL UNIQUE AUTO_INCREMENT, service_name varchar(255), type varchar(255), meta varchar(255), started int DEFAULT 0, completed int DEFAULT 0, created datetime NULL, started_date datetime NULL, completed_date datetime NULL, PRIMARY KEY (id)"
-        query += ");"
-        cur.execute(query)
+            #Create the ingestor table if necessary
+            cur = self.sql_db.cursor()
+            query = "CREATE TABLE IF NOT EXISTS ingestor ( "
+            query += "id int NOT NULL UNIQUE AUTO_INCREMENT, service_name varchar(255), type varchar(255), meta varchar(255), started int DEFAULT 0, completed int DEFAULT 0, created datetime NULL, started_date datetime NULL, completed_date datetime NULL, PRIMARY KEY (id)"
+            query += ");"
+            cur.execute(query)
         warnings.filterwarnings('always', category=MySQLdb.Warning)
 
     def add_to_ingestion(self, service_name, ingest_type, meta):
@@ -94,6 +93,15 @@ class ServiceManager():
             cur.execute(query)
             self.sql_db.commit()
 
+    def get_next_entry(self, service_name):
+        """
+        Returns the next task which the service needs to run
+        :param service_name: The name of the service
+        :return: A dictionary of the next task
+        """
+        cur = self.sql_db.cursor()
+        pass
+
     def start_ingest(self, entry_id):
         """
         Starts an ingestion entry
@@ -112,6 +120,11 @@ class ServiceManager():
 
 
 def queue_data(servicehandler):
+    """
+    Asks each service for which files it needs, and adds them to the ingestor
+    :param servicehandler: The service handler
+    :return: Returns True when completed
+    """
     for path in config.DATA_PATHS:
         for service_module in ServiceManager.servicemodules:
             required_files = service_module.get_files(path)
@@ -189,7 +202,7 @@ class ThreadedHTTPServer(ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
 class Servicehandler():
     """
-    Service handler deals with the web server
+    Service handler deals with the threaded nature of the application
     """
     server = None
     server_thread = None
