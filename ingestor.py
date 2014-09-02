@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 
-import os
-import logging
+import utils
+from service_handler import Servicehandler
 
-basepath = os.path.dirname(__file__)
+utils.log("Starting Ingestor")
 
-#Logging
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-logging.basicConfig(filename=basepath+'/logs/debug.log', level=logging.DEBUG, formatter=formatter)
-logger = logging.getLogger(__name__)
+ingestor = Servicehandler()
