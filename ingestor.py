@@ -1,10 +1,11 @@
+#!/usr/bin/env python
 """
 Initiates the Ingestor
 """
-#!/usr/bin/env python
 
 import utils
 from service_handler import Servicehandler
+
 
 utils.log("Starting Ingestor")
 

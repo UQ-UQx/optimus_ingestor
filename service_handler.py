@@ -44,9 +44,9 @@ class ServiceManager():
                     service_module = importlib.import_module('services.' + servicename + '.service')
                     self.servicemodules.append(service_module)
                     #Start Thread
-                    #servicethread = threading.Thread(target=servicemodule.runservice)
-                    #servicethread.start()
-                    #self.servicethreads.append(servicethread)
+                    servicethread = threading.Thread(target=service_module.service)
+                    servicethread.start()
+                    self.servicethreads.append(servicethread)
 
     def setup_ingest_database(self):
         """

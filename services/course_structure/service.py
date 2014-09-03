@@ -2,8 +2,39 @@ import base_service
 import os
 import utils
 
+
 class CourseStructure(base_service.BaseService):
+
+    inst = None
+
+    def __init__(self):
+        CourseStructure.inst = self
+        super(CourseStructure, self).__init__()
+
+        #The pretty name of the service
+        self.pretty_name = "Course Structure"
+        #Whether the service is enabled
+        self.enabled = True
+        #Whether to run more than once
+        self.loop = True
+        #The amount of time to sleep in seconds
+        self.sleep_time = 60
+
+        self.initialize()
+
     pass
+
+    def setup(self):
+        """
+        Set initial variables before the run loop starts
+        """
+        pass
+
+    def run(self):
+        """
+        Runs every X seconds, the main run loop
+        """
+        pass
 
 
 def get_files(path):
