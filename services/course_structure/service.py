@@ -49,9 +49,7 @@ class CourseStructure(base_service.BaseService):
         for ingest in ingests:
             if ingest['type'] == 'file':
 
-                #self.start_ingest(ingest['id'])
-
-                print ingest
+                self.start_ingest(ingest['id'])
 
                 path = ingest['meta']
 
@@ -73,7 +71,7 @@ class CourseStructure(base_service.BaseService):
 
                 utils.log("Parsed "+coursename)
 
-                #self.finish_ingest(ingest['id'])
+                self.finish_ingest(ingest['id'])
 
     def xml_unpack_file(self, filename):
         """
