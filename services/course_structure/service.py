@@ -1,9 +1,17 @@
+"""
+Service for parsing the XML course structure
+"""
 import base_service
 import os
 import utils
+import json
+import xml.etree.ElementTree as ElTree
 
 
 class CourseStructure(base_service.BaseService):
+    """
+    Converts the XML course structure to JSON
+    """
 
     inst = None
 
@@ -20,6 +28,9 @@ class CourseStructure(base_service.BaseService):
         #The amount of time to sleep in seconds
         self.sleep_time = 60
 
+        #The location to output course structure
+        self.outputdir = 'www/course_structure'
+
         self.initialize()
 
     pass
@@ -34,7 +45,84 @@ class CourseStructure(base_service.BaseService):
         """
         Runs every X seconds, the main run loop
         """
-        pass
+        ingests = self.get_ingests()
+        for ingest in ingests:
+            if ingest['type'] == 'file':
+
+                #self.start_ingest(ingest['id'])
+
+                print ingest
+
+                path = ingest['meta']
+
+                coursename = os.path.basename(os.path.normpath(path))
+
+                coursesplit = coursename.split("-")
+                term = coursesplit[-1]
+                #Parse the course
+                coursefile = os.path.join(path, 'course', term + '.xml')
+                course = self.xml_unpack_file(coursefile)
+                course = self.add_linked_file_xml(path, course)
+                policyfileurl = os.path.join(path, 'policies', term, 'policy.json')
+                policyfile = open(policyfileurl).read()
+                policydata = json.loads(policyfile)
+                course['policy'] = policydata
+                f = open(self.outputdir+'/'+coursename+'.json', 'w+')
+                print self.outputdir+'/'+coursename+'.json'
+                f.write(json.dumps(course))
+
+                utils.log("Parsed "+coursename)
+
+                #self.finish_ingest(ingest['id'])
+
+    def xml_unpack_file(self, filename):
+        """
+        Unpacks an XML file into a python object
+        :param filename: The file of the XML file
+        :return: A python object representation of the XML file
+        """
+        return self.xml_unpack(ElTree.parse(filename))
+
+    def xml_unpack(self, tree):
+        """
+        Unpacks an XML tree into a python object
+        :param tree: The tree to parse
+        :return: Unpacked XML Element
+        """
+        return self.xml_unpackelement(tree.getroot())
+
+    def xml_unpackelement(self, el):
+        """
+        Recursively turns XML into a nested object
+        :param el: The element
+        :return: A python object
+        """
+        obj = {'children': [], 'tag': el.tag}
+        for attrib_name in el.attrib:
+            obj[attrib_name] = el.attrib[attrib_name]
+        for child in el:
+            obj['children'].append(self.xml_unpackelement(child))
+        return obj
+
+    def add_linked_file_xml(self, basepath, xml_object):
+        """
+        Find linked XML files
+        :param basepath: The base path
+        :param xml_object: The currently parsing object
+        :return: A parsed object
+        """
+        if len(xml_object['children']) > 0:
+            index = 0
+            for child in xml_object['children']:
+                if len(child['children']) == 0 and 'url_name' in child:
+                    child_path = os.path.join(basepath, child['tag'], child['url_name']+'.xml')
+                    if os.path.isfile(child_path):
+                        child_obj = (self.xml_unpack_file(child_path))
+                        for key in child_obj:
+                            child[key] = child_obj[key]
+                        xml_object['children'][index] = self.add_linked_file_xml(basepath, child)
+                index += 1
+        return xml_object
 
 
 def get_files(path):

@@ -1,10 +1,17 @@
+"""
+Service for importing the edX clickstream
+"""
 import base_service
 import os
 import utils
+import time
+import config
 
 
 class Clickstream(base_service.BaseService):
-
+    """
+    Collects the clickstream logs from the edX data package using mongoimport system command
+    """
     inst = None
 
     def __init__(self):
@@ -20,6 +27,9 @@ class Clickstream(base_service.BaseService):
         #The amount of time to sleep in seconds
         self.sleep_time = 60
 
+        self.mongo_dbname = "logs"
+        self.mongo_collectionname = "clickstream"
+
         self.initialize()
 
     pass
@@ -28,13 +38,41 @@ class Clickstream(base_service.BaseService):
         """
         Set initial variables before the run loop starts
         """
+        ensure_mongo_indexes()
         pass
 
     def run(self):
         """
         Runs every X seconds, the main run loop
         """
+        ingests = self.get_ingests()
+        utils.log("Running clickstream")
+        for ingest in ingests:
+            if ingest['type'] == 'file':
+
+                self.start_ingest(ingest['id'])
+
+                cmd = "mongoimport --quiet --host " + config.MONGO_HOST + " --db "+self.mongo_dbname+" --collection "+self.mongo_collectionname+" < "+ingest['meta']
+                os.system(cmd)
+
+                self.finish_ingest(ingest['id'])
         pass
+
+
+def ensure_mongo_indexes():
+    """
+    Runs commands on the mongo indexes to ensure that they are set
+    :return: None
+    """
+    utils.log("Setting index for countries")
+    cmd = "mongo  --quiet " + config.MONGO_HOST + "/logs --eval \"db.clickstream.ensureIndex({country:1})\""
+    os.system(cmd)
+    utils.log("Setting index for event-course")
+    cmd = "mongo  --quiet " + config.MONGO_HOST + "/logs --eval \"db.clickstream.ensureIndex( {event_type: 1,'context.course_id': 1} )\""
+    os.system(cmd)
+    utils.log("Setting index for course")
+    cmd = "mongo  --quiet " + config.MONGO_HOST + "/logs --eval \"db.clickstream.ensureIndex( {'context.course_id': 1} )\""
+    os.system(cmd)
 
 
 def get_files(path):
@@ -51,7 +89,34 @@ def get_files(path):
                 extension = os.path.splitext(filename)[1]
                 if extension == '.log':
                     required_files.append(os.path.join(main_path, subdir, filename))
+    maxdates = {}
+    for required_file in required_files:
+        dirname = os.path.dirname(required_file)
+        filename = os.path.basename(required_file)
+        filetime = filenametodate(filename)
+        if dirname not in maxdates:
+            maxdates[dirname] = filetime
+        if filetime > maxdates[dirname]:
+            maxdates[dirname] = filetime
+    for i in reversed(xrange(len(required_files))):
+        dirname = os.path.dirname(required_files[i])
+        filename = os.path.basename(required_files[i])
+        filetime = filenametodate(filename)
+        if maxdates[dirname] == filetime:
+            del required_files[i]
+        pass
     return required_files
+
+
+def filenametodate(filename):
+    """
+    Extracts the date from a clickstream filename
+    :param filename: The filename to extract
+    :return: The date
+    """
+    date = filename.replace("_UQx.log", "")
+    date = time.strptime(date, "%Y-%m-%d")
+    return date
 
 
 def name():

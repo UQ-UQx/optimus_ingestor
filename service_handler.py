@@ -15,6 +15,8 @@ import warnings
 #Web server
 Protocol = "HTTP/1.0"
 ServerPort = 8850
+#The string to search for when finding relevant databases
+db_prepend = 'UQx'
 
 
 class ServiceManager():
@@ -42,6 +44,7 @@ class ServiceManager():
                 if os.path.exists(servicepath):
                     log("Starting module: "+servicename)
                     service_module = importlib.import_module('services.' + servicename + '.service')
+                    service_module.manager = self
                     self.servicemodules.append(service_module)
                     #Start Thread
                     servicethread = threading.Thread(target=service_module.service)
@@ -93,31 +96,6 @@ class ServiceManager():
             cur.execute(query)
             self.sql_db.commit()
 
-    def get_next_entry(self, service_name):
-        """
-        Returns the next task which the service needs to run
-        :param service_name: The name of the service
-        :return: A dictionary of the next task
-        """
-        cur = self.sql_db.cursor()
-        pass
-
-    def start_ingest(self, entry_id):
-        """
-        Starts an ingestion entry
-        :param entry_id: the ID of the ingestion entry
-        """
-        cur = self.sql_db.cursor()
-        pass
-
-    def finish_ingest(self, entry_id):
-        """
-        Finishes an ingestion entry
-        :param entry_id: the ID of the ingestion entry
-        """
-        cur = self.sql_db.cursor()
-        pass
-
 
 def queue_data(servicehandler):
     """
@@ -130,9 +108,36 @@ def queue_data(servicehandler):
             required_files = service_module.get_files(path)
             for required_file in required_files:
                 #Add file to the ingestion table
-                pass
                 servicehandler.manager.add_to_ingestion(service_module.name(), 'file', required_file)
     return True
+
+
+def remove_all_data():
+    """
+    Completely wipes the ingestion, should never be used apart from testing
+    :return: Returns True when completed
+    """
+    root_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api')
+    cur = root_db.cursor()
+    query = "SHOW DATABASES;"
+    cur.execute(query)
+    for row in cur.fetchall():
+        if row[0].find(db_prepend) > -1 or row[0] == 'Person_Course':
+            #Drop the relevant DBs
+            query = "DROP DATABASE "+row[0]
+            cur.execute(query)
+            root_db.commit()
+            log("*** Removing database "+row[0])
+    #Empty the ingestor
+    pcourse_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api')
+    pcur = pcourse_db.cursor()
+    query = "TRUNCATE ingestor"
+    pcur.execute(query)
+    pcourse_db.commit()
+    log("*** Resetting ingestor cache")
+    #Delete the mongoDB
+    cmd = "mongo " + config.MONGO_HOST + "/logs --eval \"db.dropDatabase()\""
+    os.system(cmd)
 
 
 class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
@@ -217,6 +222,8 @@ class Servicehandler():
         return cls._instance
 
     def __init__(self):
+        #@todo remove this
+        #remove_all_data()
         self.manager = ServiceManager()
         self.setup_webserver()
 
@@ -233,7 +240,7 @@ class Servicehandler():
         self.server_thread.daemon = True
         self.server_thread.start()
         #@todo remove this
-        queue_data(self)
+        #queue_data(self)
         self.sleepmainthread()
 
     def sleepmainthread(self):
