@@ -76,6 +76,52 @@ class BaseService(object):
         """
         self.api_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api')
 
+    def finished_ingestion(self, service_name):
+        """
+        Checks whether the service is running or not
+        :param service_name: The name of the service to check
+        :return: True or False depending on whether the ingestion is finished
+        """
+        self.setup_ingest_api()
+        cur = self.api_db.cursor()
+        query = "SELECT * FROM ingestor WHERE service_name = '" + service_name + "' AND started = 0 AND completed = 0 ORDER BY created ASC;"
+        cur.execute(query)
+        finished = True
+        for row in cur.fetchall():
+            finished = False
+        return finished
+
+    def find_last_run_ingest(self, service_name):
+        """
+        Finds the date of the last time the service ran
+        :return: The date of the last run
+        """
+        self.setup_ingest_api()
+        cur = self.api_db.cursor()
+        query = "SELECT * FROM ingestor WHERE service_name = '" + service_name + "' AND started = 1 AND completed = 1 ORDER BY created DESC limit 1;"
+        cur.execute(query)
+        date = datetime.datetime.fromtimestamp(0)
+        for row in cur.fetchall():
+            date = row[6]
+        cur.close()
+        return date
+
+    def save_run_ingest(self):
+        """
+        Saves an entry to the ingest of the last time the service was run
+        """
+        self.setup_ingest_api()
+        cur = self.api_db.cursor()
+        current_time = time.strftime('%Y-%m-%d %H:%M:%S')
+        service_name = str(self.__class__.__name__)
+        query = "INSERT INTO ingestor "
+        query += "(service_name, type, meta, started, completed, created, started_date, completed_date) "
+        query += "VALUES "
+        query += '("' + service_name + '", "' + "save_run" + '", "", 1, 1, "' + current_time + '", "' + current_time + '", "' + current_time + '")'
+        print query
+        cur.execute(query)
+        self.api_db.commit()
+
     def get_ingests(self):
         """
         Retrieves the relevant ingests for the service

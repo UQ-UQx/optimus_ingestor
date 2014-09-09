@@ -247,5 +247,5 @@ class Servicehandler():
         """
         Sleeps the main thread
         """
-        sleep(2)
-        self.sleepmainthread()
+        while True:
+            sleep(20)
