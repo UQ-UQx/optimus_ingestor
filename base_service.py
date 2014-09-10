@@ -4,6 +4,7 @@ The base service which all services extend
 from utils import *
 import time
 import MySQLdb
+import courses as config_courses
 
 
 class BaseService(object):
@@ -94,6 +95,7 @@ class BaseService(object):
     def find_last_run_ingest(self, service_name):
         """
         Finds the date of the last time the service ran
+        :param service_name: The name of the service to find
         :return: The date of the last run
         """
         self.setup_ingest_api()
@@ -201,7 +203,8 @@ class BaseService(object):
                 self.sql_db.commit()
         return results
 
-    def number_of_lines(self, the_file):
+    @staticmethod
+    def number_of_lines(the_file):
         """
         Returns the number of lines in a file
         :param the_file: The file to check
@@ -212,3 +215,14 @@ class BaseService(object):
             pass
         the_file.seek(0)
         return i + 1
+
+    @staticmethod
+    def get_all_courses():
+        """
+        Returns all the courses
+        :return: All the courses
+        """
+        course_dict = config_courses.EDX_DATABASES
+        del(course_dict['default'])
+        del(course_dict['personcourse'])
+        return course_dict

@@ -2,7 +2,6 @@
 Service for attaching time objects to mongo entries with timestamps
 """
 import base_service
-import os
 import utils
 from bson import ObjectId
 from pymongo import *

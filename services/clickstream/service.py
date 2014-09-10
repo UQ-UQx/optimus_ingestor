@@ -46,12 +46,11 @@ class Clickstream(base_service.BaseService):
         Runs every X seconds, the main run loop
         """
         ingests = self.get_ingests()
-        utils.log("Running clickstream")
         for ingest in ingests:
             if ingest['type'] == 'file':
 
                 self.start_ingest(ingest['id'])
-
+                utils.log("Importing from ingestor " + ingest['id'])
                 cmd = "mongoimport --quiet --host " + config.MONGO_HOST + " --db "+self.mongo_dbname+" --collection "+self.mongo_collectionname+" < "+ingest['meta']
                 os.system(cmd)
 
