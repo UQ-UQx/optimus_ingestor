@@ -50,7 +50,7 @@ class Clickstream(base_service.BaseService):
             if ingest['type'] == 'file':
 
                 self.start_ingest(ingest['id'])
-                utils.log("Importing from ingestor " + ingest['id'])
+                utils.log("Importing from ingestor " + str(ingest['id']))
                 cmd = "mongoimport --quiet --host " + config.MONGO_HOST + " --db "+self.mongo_dbname+" --collection "+self.mongo_collectionname+" < "+ingest['meta']
                 os.system(cmd)
 
@@ -81,7 +81,7 @@ def get_files(path):
     :return: An array of file paths
     """
     required_files = []
-    main_path = os.path.join(path, 'clickstream_logs', 'latest')
+    main_path = os.path.realpath(os.path.join(path, 'clickstream_logs', 'latest'))
     for subdir in os.listdir(main_path):
         if os.path.isdir(os.path.join(main_path, subdir)):
             for filename in os.listdir(os.path.join(main_path, subdir)):

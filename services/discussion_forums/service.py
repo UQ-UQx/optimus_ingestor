@@ -153,7 +153,7 @@ def get_files(path):
     :return: An array of file paths
     """
     required_files = []
-    main_path = os.path.join(path, 'database_state', 'latest')
+    main_path = os.path.realpath(os.path.join(path, 'database_state', 'latest'))
     for filename in os.listdir(main_path):
         extension = os.path.splitext(filename)[1]
         if extension == '.mongo':

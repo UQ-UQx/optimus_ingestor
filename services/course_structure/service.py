@@ -130,7 +130,7 @@ def get_files(path):
     :return: An array of file paths
     """
     required_files = []
-    main_path = os.path.join(path, 'database_state', 'latest')
+    main_path = os.path.realpath(os.path.join(path, 'database_state', 'latest'))
     for subdir in os.listdir(main_path):
         if os.path.isdir(os.path.join(main_path, subdir)):
             required_files.append(os.path.join(main_path, subdir))

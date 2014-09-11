@@ -31,9 +31,8 @@ class ServiceManager():
     def __init__(self):
         log("Starting Service Manager")
         self.setup_ingest_database()
-        self.autoload()
 
-    def autoload(self):
+    def load_services(self):
         """
         Loads each module
         """
@@ -55,8 +54,9 @@ class ServiceManager():
         """
         Ensures that the required DB and tables exist
         """
-        warnings.filterwarnings('ignore', category=MySQLdb.Warning)
+        #warnings.filterwarnings('ignore', category=MySQLdb.Warning)
         #Create and connect to the API database
+        log("Testing Database existance")
         try:
             self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api')
         except MySQLdb.OperationalError:
@@ -65,13 +65,14 @@ class ServiceManager():
             cur.execute("CREATE DATABASE API")
             self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api')
         if self.sql_db:
+            log("Creating table API")
             #Create the ingestor table if necessary
             cur = self.sql_db.cursor()
             query = "CREATE TABLE IF NOT EXISTS ingestor ( "
             query += "id int NOT NULL UNIQUE AUTO_INCREMENT, service_name varchar(255), type varchar(255), meta varchar(255), started int DEFAULT 0, completed int DEFAULT 0, created datetime NULL, started_date datetime NULL, completed_date datetime NULL, PRIMARY KEY (id)"
             query += ");"
             cur.execute(query)
-        warnings.filterwarnings('always', category=MySQLdb.Warning)
+        #warnings.filterwarnings('always', category=MySQLdb.Warning)
 
     def add_to_ingestion(self, service_name, ingest_type, meta):
         """
@@ -104,11 +105,12 @@ def queue_data(servicehandler):
     :return: Returns True when completed
     """
     for path in config.DATA_PATHS:
+        path = os.path.realpath(path)
         for service_module in ServiceManager.servicemodules:
             required_files = service_module.get_files(path)
             for required_file in required_files:
                 #Add file to the ingestion table
-                servicehandler.manager.add_to_ingestion(service_module.name(), 'file', required_file)
+                servicehandler.manager.add_to_ingestion(service_module.name(), 'file', os.path.realpath(required_file))
     return True
 
 
@@ -148,19 +150,20 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     response = 0
     servicehandler = None
 
-    def runmodule(self, modulename, meta):
-        """
-        Executes a module to run (usually a module which does not loop)
-        """
-        servicespath = os.path.join(basepath, 'services')
-        servicepath = os.path.join(servicespath, modulename, 'service.py')
-        if os.path.exists(servicepath):
-            pass
-            #log("Starting once-off module "+servicename)
-            #servicemodule = baseservice.load_module(servicename)
-            #print meta
-            #servicethread = threading.Thread(target=servicemodule.runservice, args=meta)
-            #servicethread.start()
+    # def runmodule(self, modulename, meta):
+    #     """
+    #     Executes a module to run (usually a module which does not loop)
+    #     This may not be needed in the new ingestor
+    #     """
+    #     servicespath = os.path.join(basepath, 'services')
+    #     servicepath = os.path.join(servicespath, modulename, 'service.py')
+    #     if os.path.exists(servicepath):
+    #         pass
+    #         #log("Starting once-off module "+servicename)
+    #         #servicemodule = baseservice.load_module(servicename)
+    #         #print meta
+    #         #servicethread = threading.Thread(target=servicemodule.runservice, args=meta)
+    #         #servicethread.start()
 
     def do_GET(self):
         """
@@ -222,9 +225,10 @@ class Servicehandler():
         return cls._instance
 
     def __init__(self):
-        #@todo remove this
-        #remove_all_data()
         self.manager = ServiceManager()
+        #@todo remove this
+        remove_all_data()
+        self.manager.load_services()
         self.setup_webserver()
 
     def setup_webserver(self):
@@ -240,7 +244,7 @@ class Servicehandler():
         self.server_thread.daemon = True
         self.server_thread.start()
         #@todo remove this
-        #queue_data(self)
+        queue_data(self)
         self.sleepmainthread()
 
     def sleepmainthread(self):
