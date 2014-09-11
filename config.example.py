@@ -7,7 +7,7 @@ RESET_CACHE = False
 RESET_CACHE_URL = 'http://example.com/visualization_reload/'
 #Fab - configuration for deploying to a remote server
 FAB_HOSTS = []
-FAB_GITHUB_URL = 'https://github.com/UQ-UQx/injestor.git'
+FAB_GITHUB_URL = 'https://github.com/UQ-UQx/optimus_ingestor.git'
 FAB_REMOTE_PATH = '/file/to/your/deployment/location'
 #Ignored services
 IGNORE_SERVICES = ['extractsample', 'personcourse']
