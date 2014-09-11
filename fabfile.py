@@ -25,7 +25,7 @@ def deploy():
         remote_vc("git stash", "Resetting changes to remote", True)
         remote_vc("git reset --hard", "Resetting changes to remote", True)
         remote_vc("git pull", "Pulling from git", True)
-        remote_vc("%s/injestor.py start" % env.remote_code_dir, "Starting Injestor")
+        #remote_vc("%s/injestor.py start" % env.remote_code_dir, "Starting Injestor")
 
 
 def create():
