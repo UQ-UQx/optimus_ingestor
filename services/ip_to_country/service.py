@@ -68,7 +68,9 @@ class IPToCountry(base_service.BaseService):
                 for collection in self.mongo_db.collection_names():
                     mongo_collection = self.mongo_db[collection]
                     if mongo_collection:
+                        utils.log("CHECKING COUNTRY")
                         toupdates = mongo_collection.find({self.ipfield: {'$exists': True}, 'country': {'$exists': False}})
+                        utils.log("FOUND COUNTRY")
                         for toupdate in toupdates:
                             if toupdate[self.ipfield] != '::1':
                                 try:
@@ -81,7 +83,7 @@ class IPToCountry(base_service.BaseService):
                                     pass
                             else:
                                 mongo_collection.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"country": ""}})
-
+                utils.log("FINISHED COUNTRY")
                 self.save_run_ingest()
 
         pass
