@@ -62,7 +62,7 @@ class TimeFinder(base_service.BaseService):
                     if mongo_collection:
                         toupdates = mongo_collection.find({self.timefield: {'$exists': True}, 'time_date': {'$exists': False}})
                         for toupdate in toupdates:
-                            utils.log("*** Adding time to " + str(toupdate))
+                            #utils.log("*** Adding time to " + str(toupdate))
                             mongo_collection.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"time_date": dateutil.parser.parse(toupdate['time'])}})
 
                 self.save_run_ingest()

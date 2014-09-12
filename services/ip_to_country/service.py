@@ -76,7 +76,7 @@ class IPToCountry(base_service.BaseService):
                                     isocountry = country.country.iso_code
                                     mongo_collection.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry}})
                                 except AddressNotFoundError:
-                                    utils.log("Could not find address for " + str(toupdate))
+                                    #utils.log("Could not find address for " + str(toupdate))
                                     pass
                             else:
                                 mongo_collection.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"country": ""}})
