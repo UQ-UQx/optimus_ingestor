@@ -75,6 +75,7 @@ class IPToCountry(base_service.BaseService):
                                     country = self.geo_reader.country(toupdate[self.ipfield])
                                     isocountry = country.country.iso_code
                                     mongo_collection.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry}})
+                                    utils.log("*** ADDING ADDRESS")
                                 except AddressNotFoundError:
                                     #utils.log("Could not find address for " + str(toupdate))
                                     pass

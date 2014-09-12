@@ -64,7 +64,7 @@ class TimeFinder(base_service.BaseService):
                         for toupdate in toupdates:
                             #utils.log("*** Adding time to " + str(toupdate))
                             mongo_collection.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"time_date": dateutil.parser.parse(toupdate['time'])}})
-
+                            utils.log("*** ADDING ADDRESS")
                 self.save_run_ingest()
 
         pass
