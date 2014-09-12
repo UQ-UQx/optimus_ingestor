@@ -54,7 +54,7 @@ class ServiceManager():
         """
         Ensures that the required DB and tables exist
         """
-        #warnings.filterwarnings('ignore', category=MySQLdb.Warning)
+        warnings.filterwarnings('ignore', category=MySQLdb.Warning)
         #Create and connect to the API database
         log("Testing Database existance")
         try:
@@ -72,7 +72,7 @@ class ServiceManager():
             query += "id int NOT NULL UNIQUE AUTO_INCREMENT, service_name varchar(255), type varchar(255), meta varchar(255), started int DEFAULT 0, completed int DEFAULT 0, created datetime NULL, started_date datetime NULL, completed_date datetime NULL, PRIMARY KEY (id)"
             query += ");"
             cur.execute(query)
-        #warnings.filterwarnings('always', category=MySQLdb.Warning)
+        warnings.filterwarnings('always', category=MySQLdb.Warning)
 
     def add_to_ingestion(self, service_name, ingest_type, meta):
         """
@@ -96,6 +96,42 @@ class ServiceManager():
             query += '"'+service_name+'","'+ingest_type+'","'+meta+'","'+created+'");'
             cur.execute(query)
             self.sql_db.commit()
+
+
+def get_status(service_name):
+    """
+    Gets the current status of a service
+    :param service_name: the name of the service
+    :return: a dictionary of the services status
+    """
+    api_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api')
+    status = {'name': service_name}
+    cur = api_db.cursor()
+    query = 'SELECT type, meta, started, completed, started_date, completed_date FROM ingestor WHERE service_name="' + service_name + '" AND started=1 ORDER BY created;'
+    cur.execute(query)
+    status['status'] = 'stopped'
+    hasany = False
+    status['task'] = ''
+    status['file'] = ''
+    status['startdate'] = ''
+    status['lastcompletedate'] = ''
+    status['tasksleft'] = 0
+    for row in cur.fetchall():
+        if not hasany:
+            status['status'] = 'sleeping'
+            hasany = True
+        if row[2] == 1 and row[3] == 0:
+            status['status'] = 'running'
+            status['task'] = row[0]
+            status['startdate'] = row[4].strftime('%Y-%m-%d %H:%M:%S')
+            if status['task'] == 'file':
+                status['file'] = os.path.basename(row[1])
+            status['tasksleft'] += 1
+        elif row[2] == 1 and row[3] == 1:
+            status['lastcompletedate'] = row[5].strftime('%Y%m%d %H:%M:%S')
+        elif row[2] == 0:
+            status['tasksleft'] += 1
+    return status
 
 
 def queue_data(servicehandler):
@@ -176,16 +212,17 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.end_headers()
         if self.path == "/status":
             status = {}
-            #for sv in ServiceLoader.servicemodules:
-            #    status[sv.name()] = sv.status()
+            for sv in ServiceManager.servicemodules:
+                name = sv.name()
+                status[name] = get_status(name)
             response['response'] = status
-        elif "newdata":
+        elif self.path == "newdata":
             response['response'] = 'Could not queue data'
             response['statuscode'] = 500
             if queue_data(self.servicehandler):
                 response['response'] = 'Data successfully queued'
                 response['statuscode'] = 200
-        elif "/":
+        elif self.path == "/":
             response['response'] = 'Ingestion running'
             response['statuscode'] = 200
         else:
@@ -227,8 +264,9 @@ class Servicehandler():
     def __init__(self):
         self.manager = ServiceManager()
         #@todo remove this
-        remove_all_data()
+        #remove_all_data()
         self.manager.load_services()
+        print "FINISHED LOADING SERVICES"
         self.setup_webserver()
 
     def setup_webserver(self):
