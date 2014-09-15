@@ -226,3 +226,18 @@ class BaseService(object):
         del(course_dict['default'])
         del(course_dict['personcourse'])
         return course_dict
+
+    @staticmethod
+    def get_existing_ingests(service_name):
+        """
+        Returns all already ingested information
+        :return: An array of ingests
+        """
+        ingests = []
+        api_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api')
+        cur = api_db.cursor()
+        query = "SELECT * FROM ingestor WHERE service_name = '" + service_name + "' AND started = 1 AND completed = 1 ORDER BY created ASC;"
+        cur.execute(query)
+        for row in cur.fetchall():
+            ingests.append(row)
+        return ingests

@@ -80,6 +80,14 @@ def get_files(path):
     :param path: The path of the files
     :return: An array of file paths
     """
+    ignore_dates = []
+    existings = base_service.BaseService.get_existing_ingests("Clickstream")
+    for existing in existings:
+        if existing[2] == 'file':
+            pathvars = existing[3].split('/')
+            ignore_dates.append(pathvars[len(pathvars)-2] + "/" + pathvars[len(pathvars)-1])
+    #print ignore_dates #'prod-edx-EdxappServerSecurityGroup-legacy-prod-edxapp-004/2014-07-10_UQx.log'
+
     required_files = []
     main_path = os.path.realpath(os.path.join(path, 'clickstream_logs', 'latest'))
     for subdir in os.listdir(main_path):
@@ -87,7 +95,12 @@ def get_files(path):
             for filename in os.listdir(os.path.join(main_path, subdir)):
                 extension = os.path.splitext(filename)[1]
                 if extension == '.log':
-                    required_files.append(os.path.join(main_path, subdir, filename))
+                    pathvars = os.path.join(main_path, subdir, filename).split('/')
+                    ignore_check = pathvars[len(pathvars)-2] + "/" + pathvars[len(pathvars)-1]
+                    if ignore_check not in ignore_dates:
+                        required_files.append(os.path.join(main_path, subdir, filename))
+                    else:
+                        print "IGNORING "+ignore_check
     maxdates = {}
     for required_file in required_files:
         dirname = os.path.dirname(required_file)

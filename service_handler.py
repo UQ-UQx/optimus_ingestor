@@ -11,6 +11,7 @@ from utils import *
 import json
 import MySQLdb
 import warnings
+import atexit
 
 #Web server
 Protocol = "HTTP/1.0"
@@ -47,6 +48,7 @@ class ServiceManager():
                     self.servicemodules.append(service_module)
                     #Start Thread
                     servicethread = threading.Thread(target=service_module.service)
+                    servicethread.daemon = True
                     servicethread.start()
                     self.servicethreads.append(servicethread)
 
