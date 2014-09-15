@@ -1,5 +1,6 @@
 import MySQLdb
 import datetime
+import warnings
 
 class CFModel(object):
 
@@ -236,9 +237,10 @@ class PCModel(object):
     def save2db(self, cursor, table):
         parameters = table, self.course_id, self.user_id, self.registered, self.viewed, self.explored, self.certified, self.final_cc_cname, self.LoE, self.YoB, self.gender, self.mode, self.grade, self.start_time, self.last_event, self.nevents, self.ndays_act, self.nplay_video, self.nchapters, self.nforum_posts, self.roles, self.attempted_problems, self.inconsistent_flag
         #print parameters
-
+        warnings.filterwarnings('ignore', category=MySQLdb.Warning)
         query = "INSERT INTO %s (course_id, user_id, registered, viewed, explored, certified, final_cc_cname, LoE, YoB, gender, mode, grade, start_time, last_event, nevents, ndays_act, nplay_video, nchapters, nforum_posts, roles, attempted_problems, inconsistent_flag) VALUES ('%s', '%s', %d, %d, %d, %d, '%s', '%s', '%s', '%s', '%s', %f, '%s', '%s', %d, %d, %d, %d, %d, '%s', %d, %d)" % parameters
         cursor.execute(query)
+        warnings.filterwarnings('always', category=MySQLdb.Warning)
 
     def __repr__(self):
         result = ""
