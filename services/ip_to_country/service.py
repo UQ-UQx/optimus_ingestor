@@ -71,18 +71,20 @@ class IPToCountry(base_service.BaseService):
                         utils.log("CHECKING COUNTRY")
                         toupdates = mongo_collection.find({self.ipfield: {'$exists': True}, 'country': {'$exists': False}})
                         utils.log("FOUND COUNTRY")
+                        i = 0
                         for toupdate in toupdates:
                             if toupdate[self.ipfield] != '::1':
                                 try:
                                     country = self.geo_reader.country(toupdate[self.ipfield])
                                     isocountry = country.country.iso_code
                                     mongo_collection.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry}})
-                                    print "*** ADDING ADDRESS"
+                                    print "*** ADDING ADDRESS "+str(i)+" / "+str(len(toupdates))
                                 except AddressNotFoundError:
                                     #utils.log("Could not find address for " + str(toupdate))
                                     pass
                             else:
                                 mongo_collection.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"country": ""}})
+                            i += 1
                 utils.log("FINISHED COUNTRY")
                 self.save_run_ingest()
 
