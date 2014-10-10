@@ -100,7 +100,8 @@ def get_files(path):
                     if ignore_check not in ignore_dates:
                         required_files.append(os.path.join(main_path, subdir, filename))
                     else:
-                        print "IGNORING "+ignore_check
+                        pass
+                        #print "IGNORING "+ignore_check
     maxdates = {}
     for required_file in required_files:
         dirname = os.path.dirname(required_file)

@@ -73,8 +73,8 @@ class IPToCountry(base_service.BaseService):
                         utils.log("FOUND COUNTRY")
                         i = 0
                         total = 0
-                        for toupdate in toupdates:
-                            total += 1
+                        #for toupdate in toupdates:
+                        #    total += 1
                         for toupdate in toupdates:
                             if toupdate[self.ipfield] != '::1':
                                 try:
