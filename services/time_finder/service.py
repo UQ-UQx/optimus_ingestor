@@ -57,6 +57,7 @@ class TimeFinder(base_service.BaseService):
                     self.mongo_db = self.mongo_client[self.mongo_dbname]
 
             if self.mongo_db:
+                total = 0
                 for collection in self.mongo_db.collection_names():
                     mongo_collection = self.mongo_db[collection]
                     if mongo_collection:
@@ -64,15 +65,11 @@ class TimeFinder(base_service.BaseService):
                         toupdates = mongo_collection.find({self.timefield: {'$exists': True}, 'time_date': {'$exists': False}})
                         utils.log("FOUND TIME")
                         i = 0
-                        total = 0
-                        #for toupdate in toupdates:
-                        #    total += 1
                         for toupdate in toupdates:
-                            #utils.log("*** Adding time to " + str(toupdate))
                             mongo_collection.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"time_date": dateutil.parser.parse(toupdate['time'])}})
-                            print "*** ADDING TIME "+str(i)+" / "+str(total)
+                            total += 1
                             i += 1
-                utils.log("FINISHED TIME")
+                utils.log("FINISHED TIME, INSERTED "+str(total))
                 self.save_run_ingest()
 
         pass
