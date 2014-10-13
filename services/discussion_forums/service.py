@@ -67,7 +67,7 @@ class DiscussionForums(base_service.BaseService):
                 for line in ingest_file:
                     document = json.loads(line)
                     if '_id' in document:
-                        #print document
+                        print document
                         try:
                             self.insert_with_id(document)
                         except OperationFailure:
