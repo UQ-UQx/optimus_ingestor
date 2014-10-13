@@ -65,8 +65,8 @@ class TimeFinder(base_service.BaseService):
                         utils.log("FOUND TIME")
                         i = 0
                         total = 0
-                        for toupdate in toupdates:
-                            total += 1
+                        #for toupdate in toupdates:
+                        #    total += 1
                         for toupdate in toupdates:
                             #utils.log("*** Adding time to " + str(toupdate))
                             mongo_collection.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"time_date": dateutil.parser.parse(toupdate['time'])}})
