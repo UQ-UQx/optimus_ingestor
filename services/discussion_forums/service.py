@@ -66,6 +66,7 @@ class DiscussionForums(base_service.BaseService):
                 for line in ingest_file:
                     document = json.loads(line)
                     if '_id' in document:
+                        print document
                         self.insert_with_id(document)
                     else:
                         utils.log("ERROR: BAD ID FOR DOCUMENT" + str(document))
