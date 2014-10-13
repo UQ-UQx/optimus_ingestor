@@ -8,6 +8,7 @@ from pymongo import MongoClient
 import json
 from bson.objectid import ObjectId
 import datetime
+from pymongo.errors import OperationFailure
 
 
 class DiscussionForums(base_service.BaseService):
@@ -66,8 +67,11 @@ class DiscussionForums(base_service.BaseService):
                 for line in ingest_file:
                     document = json.loads(line)
                     if '_id' in document:
-                        print document
-                        self.insert_with_id(document)
+                        #print document
+                        try:
+                            self.insert_with_id(document)
+                        except OperationFailure:
+                            utils.log("ERROR: BAD ID FOR DOCUMENT" + str(document))
                     else:
                         utils.log("ERROR: BAD ID FOR DOCUMENT" + str(document))
 
