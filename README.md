@@ -6,8 +6,8 @@ Ingests data from the edX data package into usable database stored structres
 
 Optimus Ingestor
 ========
-The injestor is a daemon which runs a series of services for ingesting the edX data package.
-Each service scans a data directory for specific data and ingests it into either a MySQL or MongoDB
+The optimus ingestor is a daemon which runs a series of services for ingesting the edX data package.
+Each service scans a data directory for specific data and saves its file reference.  Later, the service ingests it into either a MySQL or MongoDB
 database.  These scans are run and repeated every 5 minutes.  The daemon also provides a REST API to
 read the current state of the ingestion.  
 
@@ -23,11 +23,11 @@ cp GeoIP2-Country.mmdb [BASE_PATH]/services/iptocountry/lib/
 
 Installation
 ---------------------
-[BASE_PATH] is the path where you want the injestor installed (such as /var/injestor)
+[BASE_PATH] is the path where you want the injestor installed (such as /var/ingestor)
 
 Clone the repository
 ```bash
-git clone https://github.com/UQ-UQx/injestor.git [BASE_PATH]
+git clone https://github.com/UQ-UQx/optimus_ingestor.git [BASE_PATH]
 ```
 Install pip requirements
 ```bash
@@ -40,18 +40,10 @@ cp [BASE_PATH]/config.example.py [BASE_PATH]/config.py
 vim [BASE_PATH]/config.py
 [[EDIT THE VALUES]]
 ```
-Install init.d script (optional, only tested on Centos6.5)
-```bash
-ln [BASE_PATH]/init.d/injestor /etc/init.d/injestor
-```
 Run injestor
 ```bash
-/etc/init.d/injestor start
-(or) [BASE_PATH]/injestor.py start
-```
-If you need to test a particular service, you can run
-```bash
-[BASE_PATH]/test.py [[SERVICENAME]]
+/etc/init.d/ingestor
+(or) [BASE_PATH]/ingestor.py
 ```
 If you wish to deploy the ingestor to a server, you can use the supplied fab (http://www.fabfile.org/) script (once the config is set)
 ```
@@ -60,6 +52,13 @@ fab prepare deploy
 
 Architecture
 ---------------------
+The architecture of the Optimus Ingestor is a service-based application which has two aspects.  Firstly, the Ingestor calls each service and provides them
+with an array of files from the exported edX data.  Each service replies with which files they are interested in, and the references to these files are stored 
+in a MySQL database.  The service then is run and looks for uningested files in the database, and ingests them through the run() method.  Services can check the
+queue of uningested data for other services, to establish when a service should be run (data dependencies).  
+
+The flow of the data is as follows:
+![UQx API Architecture](/README_ARCHITECTURE_IMAGE.png?raw=true "UQx API Architecture")
 
 Running Tests
 ---------------------
