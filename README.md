@@ -58,7 +58,7 @@ in a MySQL database.  The service then is run and looks for uningested files in 
 queue of uningested data for other services, to establish when a service should be run (data dependencies).  
 
 The flow of the data is as follows:
-![UQx API Architecture](/README_ARCHITECTURE_IMAGE.png?raw=true "UQx API Architecture")
+![Optimus Ingestor](/README_ARCHITECTURE_IMAGE.png?raw=true "Optimus Ingestor")
 
 Running Tests
 ---------------------
