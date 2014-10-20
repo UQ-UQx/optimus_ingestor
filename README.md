@@ -21,6 +21,23 @@ To use the iptocountry service you will need to install the GeoIP2Country.mmdb (
 cp GeoIP2-Country.mmdb [BASE_PATH]/services/iptocountry/lib/
 ```
 
+The files extracted from the edX research package should be organised in the following manner
+
+```
+/data
+    /clickstream_logs
+        /latest (symlink)
+        /2014-01-01
+        /2014-01-07
+    /database_state
+        /latest (symlink)
+        /2014-01-01
+        /2014-01-07
+```
+
+The ingestor will look at these latest symlinked directories
+
+
 Installation
 ---------------------
 [BASE_PATH] is the path where you want the injestor installed (such as /var/ingestor)
