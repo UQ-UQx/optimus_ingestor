@@ -57,6 +57,11 @@ cp [BASE_PATH]/config.example.py [BASE_PATH]/config.py
 vim [BASE_PATH]/config.py
 [[EDIT THE VALUES]]
 ```
+Edit the courses which will be ingested (note, keep 'default' and 'person_course')
+```bash
+vim [BASE_PATH]/courses.py
+[[EDIT THE VALUES IN 'EDX_DATABASES']]
+```
 Run injestor
 ```bash
 /etc/init.d/ingestor
