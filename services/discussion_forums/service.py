@@ -52,6 +52,9 @@ class DiscussionForums(base_service.BaseService):
         """
         ingests = self.get_ingests()
         for ingest in ingests:
+            if not base_service.ALIVE:
+                print "BREAKING"
+                break
             if ingest['type'] == 'file':
 
                 self.start_ingest(ingest['id'])

@@ -11,6 +11,7 @@ from utils import *
 import json
 import MySQLdb
 import warnings
+import base_service
 import atexit
 
 #Web server
@@ -18,7 +19,6 @@ Protocol = "HTTP/1.0"
 ServerPort = 8850
 #The string to search for when finding relevant databases
 db_prepend = 'UQx'
-
 
 class ServiceManager():
     """
@@ -291,5 +291,6 @@ class Servicehandler():
         """
         Sleeps the main thread
         """
-        while True:
-            sleep(20)
+        while True and base_service.ALIVE:
+            sleep(2)
+        print "Exiting ingestor"

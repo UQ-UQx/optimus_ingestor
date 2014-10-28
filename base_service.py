@@ -5,6 +5,21 @@ from utils import *
 import time
 import MySQLdb
 import courses as config_courses
+import signal
+
+ALIVE = True
+
+
+def exit_handler(signal, frame):
+    """
+    Sets the variable ALIVE to false, killing threads
+    :param signal: the signal
+    :param frame: the frame
+    """
+    global ALIVE
+    ALIVE = False
+
+signal.signal(signal.SIGINT, exit_handler)
 
 
 class BaseService(object):
@@ -53,12 +68,14 @@ class BaseService(object):
             self.status = 'loading'
             self.setup_ingest_api()
             self.setup()
-            while self.loop:
+            while self.loop and ALIVE:
+                print "RUN LOOP FOR "+self.servicename
                 self.status = 'running'
                 self.run()
                 self.status = 'sleeping'
                 self.last_awake = time.strftime('%Y-%m-%d %H:%M:%S')
                 time.sleep(self.sleep_time)
+            print "Service finished "+self.servicename
 
     def setup(self):
         """
