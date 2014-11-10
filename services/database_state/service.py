@@ -51,7 +51,7 @@ class DatabaseState(base_service.BaseService):
                 file_name = os.path.basename(path)
 
                 #find the tablename
-                table_name = file_name[file_name.find('UQx-'):]
+                table_name = file_name[file_name.find(config.DBSTATE_PREFIX):]
                 table_name = table_name[:table_name.find('-prod-analytics.sql')]
                 database_name = table_name.split("-")
                 table_name = database_name[len(database_name)-1]

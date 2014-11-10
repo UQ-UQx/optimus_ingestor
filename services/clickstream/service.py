@@ -128,7 +128,7 @@ def filenametodate(filename):
     :param filename: The filename to extract
     :return: The date
     """
-    date = filename.replace(".log", "").replace("uqx-edx-events-", "")
+    date = filename.replace(".log", "").replace(config.CLICKSTREAM_PREFIX, "")
     date = time.strptime(date, "%Y-%m-%d")
     return date
 

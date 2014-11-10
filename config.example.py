@@ -2,6 +2,8 @@
 SQL_HOST = 'localhost'
 SQL_USERNAME = 'root'
 SQL_PASSWORD = ''
+#Mongo Server details
+MONGO_HOST = 'localhost'
 #Cache details - whether to call a URL once an ingestion script is finished
 RESET_CACHE = False
 RESET_CACHE_URL = 'http://example.com/visualization_reload/'
@@ -14,5 +16,8 @@ IGNORE_SERVICES = ['extractsample', 'personcourse']
 #File output
 OUTPUT_DIRECTORY = '/tmp'
 DATA_PATHS = ['/data/']
+EXPORT_PATH = '/Volumes/VMs/export'
 #The server where the course information is found
 SERVER_URL = 'http://dashboard.ceit.uq.edu.au'
+CLICKSTREAM_PREFIX = 'uqx-edx-events-'
+DBSTATE_PREFIX = 'UQx-'
