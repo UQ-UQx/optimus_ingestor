@@ -501,7 +501,7 @@ class PersonCourse(base_service.BaseService):
         :return the course information
         """
         print self
-        courseurl = 'https://tools.ceit.uq.edu.au/datasources/course_structure/'+json_file
+        courseurl = config.SERVER_URL + '/datasources/course_structure/' + json_file
         courseinfofile = urllib2.urlopen(courseurl)
         if courseinfofile:
             courseinfo = json.load(courseinfofile)
