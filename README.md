@@ -82,6 +82,16 @@ queue of uningested data for other services, to establish when a service should 
 The flow of the data is as follows:
 ![Optimus Ingestor](/README_ARCHITECTURE_IMAGE.png?raw=true "Optimus Ingestor")
 
+Service Logic
+---------------------
+The service logic is as follows:
+ - Clickstream - Ingests clicks into MongoDB (no requirements)
+ - Database State - Updates the SQL tables from the SQL dumps (no requirements)
+ - Discussion Forums - Ingests discussion forum tables into MongoDB (no requirements)
+ - IP To Country - Updates Mongo records with Country attributes where IP is present (requires complete clickstream)
+ - Time Finder - Updates Mongo records with Date object attributes where a date string is present (requires complete clickstream)
+ - Person Course - Generates Person Course SQL table (requires complete IPToCountry and Timefinder)
+
 Running Tests
 ---------------------
 Currently the project is at an early stage and does not have reliable tests created.
