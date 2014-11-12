@@ -35,8 +35,13 @@ class ServiceManager():
 
     def load_services(self):
         """
-        Loads each module
+        Loads each module and removes any previously uncompleted sessions
         """
+        root_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api')
+        cur = root_db.cursor()
+        query = "UPDATE ingestor SET started=0, started_date=NULL WHERE completed=0 AND started=1;"
+        cur.execute(query)
+
         servicespath = os.path.join(basepath, 'services')
         for servicename in os.listdir(servicespath):
             if servicename not in config.IGNORE_SERVICES:
