@@ -72,6 +72,11 @@ If you wish to deploy the ingestor to a server, you can use the supplied fab (ht
 fab prepare deploy
 ```
 
+Extraction Example
+---------------------
+The optimus ingestor does not deal with the initial extraction of data from the edX s3 repository.  However an example script (based on the UQx extraction process)
+can be found in extract_data.example.sh.  
+
 Architecture
 ---------------------
 The architecture of the Optimus Ingestor is a service-based application which has two aspects.  Firstly, the Ingestor calls each service and provides them
