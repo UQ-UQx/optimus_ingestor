@@ -11,11 +11,6 @@ import json
 from pymongo import MongoClient
 from datetime import datetime
 
-
-
-
-
-
 class Eventcount(base_service.BaseService):
     """
     Collects the clickstream logs from the edX data package using mongoimport system command
@@ -78,42 +73,41 @@ class Eventcount(base_service.BaseService):
         last_run = self.find_last_run_ingest("EventCount")
         last_timefinder = self.find_last_run_ingest("TimeFinder")
 
-        #if self.finished_ingestion("TimeFinder") and last_run < last_timefinder:
-            # self.create_ec_table()
-        # need to be indented in the furture
-        #print self.courses
-        for course_id, course in self.courses.items():
-            print course_id
+        if self.finished_ingestion("TimeFinder") and last_run < last_timefinder:
+            print "STARTING EVENT COUNT"
+            for course_id, course in self.courses.items():
+                print "EVENT COUNTING "+str(course_id)
+                print course_id
 
-            # Get events from course info
-            json_file = course['dbname'].replace("_", "-") + ".json"
-            courseinfo = self.loadcourseinfo(json_file)
-            if courseinfo is None:
-                utils.log("Can not find course info for ." + str(course_id))
-                continue
+                # Get events from course info
+                json_file = course['dbname'].replace("_", "-") + ".json"
+                courseinfo = self.loadcourseinfo(json_file)
+                if courseinfo is None:
+                    utils.log("Can not find course info for ." + str(course_id))
+                    continue
 
-            #print courseinfo
+                #print courseinfo
 
-            # Get events
-            events = self.get_events(courseinfo)
+                # Get events
+                events = self.get_events(courseinfo)
 
-            # Create courseevent table
-            self.create_ec_table(course_id, events)
+                # Create courseevent table
+                self.create_ec_table(course_id, events)
 
-            events_date_counts = {}
+                events_date_counts = {}
 
-            for event_id in events:
-                self.group_event_by_date(course['mongoname'], event_id, events_date_counts)
+                for event_id in events:
+                    self.group_event_by_date(course['mongoname'], event_id, events_date_counts)
 
-            #print events_date_counts
+                #print events_date_counts
 
-            # Insert records into database
-            self.insert_ec_table(course_id, events_date_counts)
+                # Insert records into database
+                self.insert_ec_table(course_id, events_date_counts)
 
-            self.sql_ec_conn.commit()
+                self.sql_ec_conn.commit()
 
-        self.loop = False
-        utils.log("The Event Count ends at: " + str(datetime.now()))
+            self.loop = False
+            utils.log("The Event Count ends at: " + str(datetime.now()))
 
 
     def group_event_by_date(self, course_mongo_name, event_id, events_date_counts):
