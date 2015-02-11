@@ -260,3 +260,34 @@ class BaseService(object):
         for row in cur.fetchall():
             ingests.append(row)
         return ingests
+
+    def connect_to_sql(self, sql_connect, db_name="", force_reconnect=False, create_db=True):
+        """
+        Connect to SQL database or create the database and connect
+        :param sql_connect: the variable to set
+        :param db_name: the name of the database
+        :param force_reconnect: force the database connection
+        :param create_db: create the database
+        :return the created SQL connection
+        """
+        print self
+        if sql_connect is None or force_reconnect:
+            try:
+                sql_connect = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db=db_name)
+                return sql_connect
+            except Exception, e:
+                # Create the database
+                if e[0] and create_db and db_name != "":
+                    if sql_connect is None:
+                        sql_connect = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD)
+                    log("Creating database " + db_name)
+
+                    cur = sql_connect.cursor()
+                    cur.execute("CREATE DATABASE " + db_name)
+                    sql_connect.commit()
+                    sql_connect.select_db(db_name)
+                    return sql_connect
+                else:
+                    log("Could not connect to MySQL: %s" % e)
+                    return None
+        return None
