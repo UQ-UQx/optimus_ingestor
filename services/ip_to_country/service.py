@@ -76,7 +76,7 @@ class IPToCountry(base_service.BaseService):
                         #for toupdate in toupdates:
                         #    total += 1
                         for toupdate in toupdates:
-                            if toupdate[self.ipfield] != '::1':
+                            if toupdate[self.ipfield] != '::1' and toupdate[self.ipfield] != '':
                                 try:
                                     country = self.geo_reader.country(toupdate[self.ipfield])
                                     isocountry = country.country.iso_code
