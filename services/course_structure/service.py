@@ -59,15 +59,18 @@ class CourseStructure(base_service.BaseService):
                 term = coursesplit[-1]
                 #Parse the course
                 coursefile = os.path.join(path, 'course', term + '.xml')
-                course = self.xml_unpack_file(coursefile)
-                course = self.add_linked_file_xml(path, course)
-                policyfileurl = os.path.join(path, 'policies', term, 'policy.json')
-                policyfile = open(policyfileurl).read()
-                policydata = json.loads(policyfile)
-                course['policy'] = policydata
-                f = open(self.outputdir+'/'+coursename+'.json', 'w+')
-                print self.outputdir+'/'+coursename+'.json'
-                f.write(json.dumps(course))
+                try:
+                    course = self.xml_unpack_file(coursefile)
+                    course = self.add_linked_file_xml(path, course)
+                    policyfileurl = os.path.join(path, 'policies', term, 'policy.json')
+                    policyfile = open(policyfileurl).read()
+                    policydata = json.loads(policyfile)
+                    course['policy'] = policydata
+                    f = open(self.outputdir+'/'+coursename+'.json', 'w+')
+                    print self.outputdir+'/'+coursename+'.json'
+                    f.write(json.dumps(course))
+                except IOError:
+                    print "COURSE STRUCTURE FILE DOES NOT EXIST "+str(coursefile)
 
                 utils.log("Parsed "+coursename)
 

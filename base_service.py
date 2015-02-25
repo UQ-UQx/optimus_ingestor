@@ -213,7 +213,7 @@ class BaseService(object):
         results = []
         if self.sql_db:
             cur = self.sql_db.cursor()
-            print query
+            #print query
             cur.execute(query)
             for row in cur.fetchall():
                 results.append(row)
