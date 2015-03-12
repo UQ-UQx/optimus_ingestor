@@ -138,7 +138,10 @@ def get_status(service_name):
                 status['file'] = os.path.basename(row[1])
             status['tasksleft'] += 1
         elif row[2] == 1 and row[3] == 1:
-            status['lastcompletedate'] = row[5].strftime('%Y%m%d %H:%M:%S')
+            if row[5] is not None:
+                status['lastcompletedate'] = row[5].strftime('%Y%m%d %H:%M:%S')
+            else:
+                status['lastcompletedate'] = ''
         elif row[2] == 0:
             status['tasksleft'] += 1
     return status
