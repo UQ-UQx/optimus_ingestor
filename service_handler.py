@@ -130,7 +130,10 @@ def get_status(service_name):
         if row[2] == 1 and row[3] == 0:
             status['status'] = 'running'
             status['task'] = row[0]
-            status['startdate'] = row[4].strftime('%Y-%m-%d %H:%M:%S')
+            if row[4] is not None:
+                status['startdate'] = row[4].strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                status['startdate'] = ''
             if status['task'] == 'file':
                 status['file'] = os.path.basename(row[1])
             status['tasksleft'] += 1
