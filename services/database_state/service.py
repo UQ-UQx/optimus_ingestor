@@ -58,31 +58,24 @@ class DatabaseState(base_service.BaseService):
                 database_name = '_'.join(database_name)
                 database_name = database_name.replace("_"+table_name, "").replace(".","")
 
+                table_name = table_name
+                tmp_table_name = "tmp_"+table_name
+
                 ingest_file = open(path)
 
-                #split the headers
+                # split the headers
                 columns = []
                 for line in ingest_file:
                     columns = line.replace("\n", "").split("\t")
                     break
 
-                if self.create_table_and_validate(database_name, table_name, columns):
-                    self.task = file_name
-                    self.task_progress = 0
-                    self.task_progress_total = self.number_of_lines(ingest_file)
-
-                    for line in ingest_file:
-                        if line[:2] == 'id' or line[:4] == 'hash':
-                            continue
-                        datahash = hashlib.sha256(line).hexdigest()
-                        line = line.replace("\n", "")
-                        line = line.replace('"', "''")
-                        data = line.split("\t")
-                        data.append(datahash)
-                        insertdata = '"' + '","'.join(data) + '"'
-                        self.sql_query("REPLACE INTO " + table_name + " VALUES ( " + insertdata + " );", True)
-                        self.task_progress += 1
-
+                self.use_sql_database(database_name)
+                self.sql_query("DROP TABLE IF EXISTS "+tmp_table_name+"", True)
+                if self.create_table_and_validate(database_name, tmp_table_name, columns):
+                    self.sql_query("LOAD DATA INFILE '"+path+"' INTO TABLE "+tmp_table_name+" FIELDS TERMINATED BY '\\t' LINES TERMINATED BY '\\n' IGNORE 1 LINES", True)
+                    self.use_sql_database(database_name)
+                    self.sql_query("DROP TABLE IF EXISTS "+table_name+"", True)
+                    self.sql_query("RENAME TABLE "+tmp_table_name+" TO "+table_name, True)
                     self.finish_ingest(ingest['id'])
         pass
 
@@ -117,8 +110,8 @@ class DatabaseState(base_service.BaseService):
                 if column == "goals" or column == "mailing_address":
                     coltype = "text"
                 query += column.replace("\n", "")+" "+coltype+", "
-            query += " xhash varchar(200) "
-            query += ", UNIQUE (xhash)"
+
+            query = query[:-2]
             query += " );"
             warnings.filterwarnings('ignore', category=MySQLdb.Warning)
             self.sql_query(query)
