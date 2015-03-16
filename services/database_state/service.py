@@ -72,7 +72,7 @@ class DatabaseState(base_service.BaseService):
                 self.use_sql_database(database_name)
                 self.sql_query("DROP TABLE IF EXISTS "+tmp_table_name+"", True)
                 if self.create_table_and_validate(database_name, tmp_table_name, columns):
-                    self.sql_query("LOAD DATA INFILE '"+path+"' INTO TABLE "+tmp_table_name+" FIELDS TERMINATED BY '\\t' LINES TERMINATED BY '\\n' IGNORE 1 LINES", True)
+                    self.sql_query("LOAD DATA LOCAL INFILE '"+path+"' INTO TABLE "+tmp_table_name+" FIELDS TERMINATED BY '\\t' LINES TERMINATED BY '\\n' IGNORE 1 LINES", True)
                     self.use_sql_database(database_name)
                     self.sql_query("DROP TABLE IF EXISTS "+table_name+"", True)
                     self.sql_query("RENAME TABLE "+tmp_table_name+" TO "+table_name, True)
