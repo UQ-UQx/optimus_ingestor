@@ -16,6 +16,9 @@ The ingested databases are designed to work in conjunction with the UQx-API appl
 
 Requirements
 ---------------------
+- Python 2.7
+- MySQL with local-infile (see below)
+
 Make sure that your MySQL installation can use 'local-infile' (see http://dev.mysql.com/doc/refman/5.1/en/server-system-variables.html#sysvar_local_infile)
 
 To use the iptocountry service you will need to install the GeoIP2Country.mmdb (available from https://www.maxmind.com/en/country)
