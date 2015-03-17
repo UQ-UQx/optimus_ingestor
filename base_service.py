@@ -190,14 +190,14 @@ class BaseService(object):
         :param database_name: The name of the database
         """
         try:
-            self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db=database_name)
+            self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db=database_name, local_infile=1)
             return True
         except MySQLdb.OperationalError:
-            self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='mysql')
+            self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='mysql', local_infile=1)
             cur = self.sql_db.cursor()
             cur.execute("CREATE DATABASE "+database_name)
             try:
-                self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db=database_name)
+                self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db=database_name, local_infile=1)
                 return True
             except MySQLdb.OperationalError:
                 log("Could not connect to MySQL Database: %s" % database_name)

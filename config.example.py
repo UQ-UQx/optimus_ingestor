@@ -12,7 +12,7 @@ FAB_HOSTS = []
 FAB_GITHUB_URL = 'https://github.com/UQ-UQx/optimus_ingestor.git'
 FAB_REMOTE_PATH = '/file/to/your/deployment/location'
 #Ignored services
-IGNORE_SERVICES = ['extractsample', 'personcourse']
+IGNORE_SERVICES = ['extract_sample', 'eventcount', 'daily_count']
 #File output
 OUTPUT_DIRECTORY = '/tmp'
 DATA_PATHS = ['/data/']
