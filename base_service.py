@@ -92,7 +92,7 @@ class BaseService(object):
         """
         Sets up the API DB for getting service information
         """
-        self.api_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api')
+        self.api_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api', local_infile=1)
 
     def finished_ingestion(self, service_name):
         """
@@ -254,7 +254,7 @@ class BaseService(object):
         :return: An array of ingests
         """
         ingests = []
-        api_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api')
+        api_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api', local_infile=1)
         cur = api_db.cursor()
         query = "SELECT * FROM ingestor WHERE service_name = '" + service_name + "' AND started = 1 AND completed = 1 ORDER BY created ASC;"
         cur.execute(query)
@@ -274,13 +274,13 @@ class BaseService(object):
         print self
         if sql_connect is None or force_reconnect:
             try:
-                sql_connect = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db=db_name)
+                sql_connect = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db=db_name, local_infile=1)
                 return sql_connect
             except Exception, e:
                 # Create the database
                 if e[0] and create_db and db_name != "":
                     if sql_connect is None:
-                        sql_connect = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD)
+                        sql_connect = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, local_infile=1)
                     log("Creating database " + db_name)
 
                     cur = sql_connect.cursor()
