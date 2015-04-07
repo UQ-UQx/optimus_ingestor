@@ -32,16 +32,18 @@ The files extracted from the edX research package should be organised in the fol
 /data
     /clickstream_logs
         /latest (symlink)
-        /2014-01-01
-        /2014-01-07
+        /events
     /database_state
         /latest (symlink)
         /2014-01-01
         /2014-01-07
 ```
 
-The ingestor will look at these latest symlinked directories
-
+The ingestor will look at these latest symlinked directories.  To create symlink directories, you can do (for clickstream):
+```
+ln -s /data/clickstream_logs/events /data/clickstream_logs/latest
+```
+For database_state, do the similar but point to the latest database_state.  When a new package comes in, you can just point the symlink to the newest database_state archive.
 
 Installation
 ---------------------
