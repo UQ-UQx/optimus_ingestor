@@ -141,7 +141,7 @@ class PersonCourse(base_service.BaseService):
                 # course_id for PCModel
                 pc_course_id = course['mongoname']
 
-                utils.log("{" + pc_course_id + "}")
+                utils.log("LOADING COURSE {" + pc_course_id + "}")
 
                 # find all user_id
                 utils.log("{auth_user}")
