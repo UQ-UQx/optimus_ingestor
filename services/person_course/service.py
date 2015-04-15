@@ -103,9 +103,12 @@ class PersonCourse(base_service.BaseService):
                     continue
                 # Set cf_item course_close_date
                 if 'end' in courseinfo:
-                    course_close_time = dateutil.parser.parse(courseinfo['end'])
-                    course_close_date = course_close_time.date()
-                    cf_item.set_course_close_date(course_close_date)
+                    try:
+                        course_close_time = dateutil.parser.parse(courseinfo['end'])
+                        course_close_date = course_close_time.date()
+                        cf_item.set_course_close_date(course_close_date)
+                    except ValueError:
+                        pass
                 # Set cf_item course_length
                 if course_launch_date and course_close_date:
                     date_delta = course_close_date - course_launch_date
