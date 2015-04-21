@@ -71,8 +71,9 @@ class CourseStructure(base_service.BaseService):
                     f = open(self.outputdir+'/'+coursename+'.json', 'w+')
                     print self.outputdir+'/'+coursename+'.json'
                     f.write(json.dumps(course))
-                except IOError:
+                except IOError as e:
                     print "COURSE STRUCTURE FILE DOES NOT EXIST "+str(coursefile)
+                    print e
 
                 utils.log("Parsed "+coursename)
 
