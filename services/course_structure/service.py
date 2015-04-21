@@ -59,6 +59,8 @@ class CourseStructure(base_service.BaseService):
                 term = coursesplit[-1]
                 #Parse the course
                 coursefile = os.path.join(path, 'course', term + '.xml')
+                if not os.path.isfile(coursefile):
+                    coursefile = os.path.join(path, 'course', 'course.xml')
                 try:
                     course = self.xml_unpack_file(coursefile)
                     course = self.add_linked_file_xml(path, course)
