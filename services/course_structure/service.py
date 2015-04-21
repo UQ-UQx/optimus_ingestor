@@ -65,6 +65,8 @@ class CourseStructure(base_service.BaseService):
                     course = self.xml_unpack_file(coursefile)
                     course = self.add_linked_file_xml(path, course)
                     policyfileurl = os.path.join(path, 'policies', term, 'policy.json')
+                    if not os.path.isfile(policyfileurl):
+                        policyfileurl = os.path.join(path, 'policies', 'course', 'policy.json')
                     policyfile = open(policyfileurl).read()
                     policydata = json.loads(policyfile)
                     course['policy'] = policydata
