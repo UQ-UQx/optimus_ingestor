@@ -476,6 +476,7 @@ class PersonCourse(base_service.BaseService):
         """
         print self
         courseurl = config.SERVER_URL + '/datasources/course_structure/' + json_file
+        print "ATTEMPTING TO LOAD "+courseurl
         courseinfofile = urllib2.urlopen(courseurl)
         if courseinfofile:
             courseinfo = json.load(courseinfofile)
