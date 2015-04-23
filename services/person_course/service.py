@@ -525,7 +525,7 @@ class PersonCourse(base_service.BaseService):
                                     nhtmls += 1
                                 elif child['tag'] == 'problem':
                                     nassessments += 1
-                                    if 'weight' in child and float(child['weight']) > 0:
+                                    if 'weight' in child and child['weight'] != "null" and float(child['weight']) > 0:
                                         nsummative_assessments += 1
                                     else:
                                         nformative_assessments += 1
