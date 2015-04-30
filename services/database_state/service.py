@@ -52,7 +52,10 @@ class DatabaseState(base_service.BaseService):
 
                 #find the tablename
                 table_name = file_name[file_name.find(config.DBSTATE_PREFIX):]
-                table_name = table_name[:table_name.find('-prod-analytics.sql')]
+                if table_name.find('-prod-edge-analytics.sql') != -1:
+                  table_name = table_name[:table_name.find('-prod-edge-analytics.sql')]
+                if table_name.find('-prod-analytics.sql') != -1:
+                  table_name = table_name[:table_name.find('-prod-analytics.sql')]
                 database_name = table_name.split("-")
                 table_name = database_name[len(database_name)-1]
                 database_name = '_'.join(database_name)
