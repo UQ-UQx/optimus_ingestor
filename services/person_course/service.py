@@ -92,14 +92,21 @@ class PersonCourse(base_service.BaseService):
 
                 cf_item = CFModel(course_id, course['dbname'], course['mongoname'], course['discussiontable'])
                 # Set cf_item course_launch_date
+                bad_start = False
                 if 'start' in courseinfo:
-                    print courseinfo['start']
-                    print type(courseinfo['start'])
-                    course_launch_time = dateutil.parser.parse(courseinfo['start'])
-                    course_launch_date = course_launch_time.date()
-                    cf_item.set_course_launch_date(course_launch_date)
+                    try:
+                        course_launch_time = dateutil.parser.parse(courseinfo['start'])
+                        course_launch_date = course_launch_time.date()
+                        cf_item.set_course_launch_date(course_launch_date)
+                    except Exception:
+                        print "ERROR: BAD COURSE CODE START DATE"
+                        print courseinfo['start']
+                        print type(courseinfo['start'])
+                        bad_start = True
                 else:
                     utils.log("Course not started for " + course_id)
+                    continue
+                if bad_start:
                     continue
                 # Set cf_item course_close_date
                 if 'end' in courseinfo:
