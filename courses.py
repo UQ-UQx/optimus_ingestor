@@ -1,7 +1,7 @@
 EDX_DATABASES = {
     'default': {'dbname': 'api', 'mongoname': 'UQx/Think101x/1T2014', 'icon': 'fa-settings'},
     'personcourse': {'dbname': 'Person_Course', 'icon': 'fa-settings'},
-    'think_101x_1T2014': {'dbname': 'UQx_Think101x_1T2014', 'mongoname': 'UQx/Think101x/1T2014', 'discussiontable': 'UQx-HYPERS301x-1T2014-prod', 'icon': 'fa-heart', 'year': '2014'},
+    'think_101x_1T2014': {'dbname': 'UQx_Think101x_1T2014', 'mongoname': 'UQx/Think101x/1T2014', 'discussiontable': 'UQx-Think101x-1T2014-prod', 'icon': 'fa-heart', 'year': '2014'},
     'hypers_301x_1T2014': {'dbname': 'UQx_HYPERS301x_1T2014', 'mongoname': 'UQx/HYPERS301x/1T2014', 'discussiontable': 'UQx-HYPERS301x-1T2014-prod', 'icon': 'fa-plane', 'year': '2014'},
     'tropic_101x_1T2014': {'dbname': 'UQx_TROPIC101x_1T2014', 'mongoname': 'UQx/TROPIC101x/1T2014', 'discussiontable': 'UQx-TROPIC101x-1T2014-prod', 'icon': 'fa-tree', 'year': '2014'},
     'bioimg_101x_1T2014': {'dbname': 'UQx_BIOIMG101x_1T2014', 'mongoname': 'UQx/BIOIMG101x/1T2014', 'discussiontable': 'UQx-BIOIMG101x-1T2014-prod', 'icon': 'fa-desktop', 'year': '2014'},
