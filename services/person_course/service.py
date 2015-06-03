@@ -95,7 +95,7 @@ class PersonCourse(base_service.BaseService):
                 bad_start = False
                 if 'start' in courseinfo:
                     try:
-                        course_launch_time = dateutil.parser.parse(courseinfo['start'])
+                        course_launch_time = dateutil.parser.parse(courseinfo['start'].replace('"', ""))
                         course_launch_date = course_launch_time.date()
                         cf_item.set_course_launch_date(course_launch_date)
                     except Exception:
