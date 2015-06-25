@@ -78,6 +78,10 @@ If you wish to deploy the ingestor to a server, you can use the supplied fab (ht
 ```
 fab prepare deploy
 ```
+The optimus ingestor will also generate course structure data (inside the www directory of the ingestor) to a web endpoint called datasources.  The API will need this for some endpoints.  This can just be a symlink to your htdocs or web server folder:
+```
+ln -s [BASE_PATH]/www [HTDOCS_PATH]/datasources
+```
 
 Extraction Example
 ---------------------
