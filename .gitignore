@@ -4,3 +4,5 @@
 *.pyc
 *.mmdb
 config.py
+
+course_event20150620.sql

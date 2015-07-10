@@ -181,6 +181,7 @@ class Eventcount(base_service.BaseService):
 
         # Add events to columns, add "u_" in front of event id to avoid possible column name syntax problems.
         for event_id in events:
+            event_id = event_id.replace(".", "$")
             columns.append({"col_name": "u_" + event_id, "col_type": "int DEFAULT 0"})
 
         ec_tablename = self.ec_table + "_" + course_id
@@ -207,7 +208,7 @@ class Eventcount(base_service.BaseService):
             columns_name = ""
             columns_value = ""
             for event_id, count in events_counts.iteritems():
-                columns_name += "u_" + event_id + ", "
+                columns_name += "u_" + event_id.replace(".", "$") + ", "
                 columns_value += str(count) + ", "
 
             columns_name = columns_name[:-2]
