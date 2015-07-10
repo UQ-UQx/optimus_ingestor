@@ -287,11 +287,12 @@ class PersonCourse(base_service.BaseService):
                 ])['result']
 
                 for item in user_posts:
-                    user_id = int(item["_id"])
-                    if user_id in pc_dict:
-                        pc_dict[user_id].set_nforum_posts(item['postSum'])
-                    else:
-                        utils.log("Author id: %s does not exist in {auth_user}." % user_id)
+                    if "_id" in item and item["_id"] != None:
+                        user_id = int(item["_id"])
+                        if user_id in pc_dict:
+                            pc_dict[user_id].set_nforum_posts(item['postSum'])
+                        else:
+                            utils.log("Author id: %s does not exist in {auth_user}." % user_id)
 
                 # Tracking logs
                 utils.log("{logs}")

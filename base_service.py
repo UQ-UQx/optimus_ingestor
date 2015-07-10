@@ -69,7 +69,7 @@ class BaseService(object):
             self.setup_ingest_api()
             self.setup()
             while self.loop and ALIVE:
-                print "RUN LOOP FOR "+self.servicename
+                #print "RUN LOOP FOR "+self.servicename
                 self.status = 'running'
                 self.run()
                 self.status = 'sleeping'
