@@ -55,7 +55,7 @@ git clone https://github.com/UQ-UQx/optimus_ingestor.git [BASE_PATH]
 ```
 Install pip requirements
 ```bash
-sudo apt-get install libxml2-dev libxslt1-dev python-dev
+sudo apt-get install libxml2-dev libxslt1-dev python-dev libsasl2-dev libldap2-dev
 pip install -r requirements.txt
 ```
 Set injestor configuration
