@@ -13,14 +13,17 @@ EDX_DATABASES = {
     'hypers_301x_1T2015': {'dbname': 'UQx_HYPERS301x_1T2015', 'mongoname': 'UQx/HYPERS301x/1T2015', 'discussiontable': 'UQx-HYPERS301x-1T2015-prod', 'icon': 'fa-plane', 'year': '2015'},
     'bioimg_101x_1T2015': {'dbname': 'UQx_BIOIMG101x_1T2015', 'mongoname': 'UQx/BIOIMG101x/1T2015', 'discussiontable': 'UQx-BIOIMG101x-1T2015-prod', 'icon': 'fa-desktop', 'year': '2015'},
     'denial_101x_1T2015': {'dbname': 'UQx_Denial101x_1T2015', 'mongoname': 'UQx/Denial101x/1T2015', 'discussiontable': 'UQx-Denial101x-1T2015-prod', 'icon': 'fa-recycle', 'year': '2015'},
-    'learn_101x_1T2015': {'dbname': 'UQx_Learn101x_1T2015', 'mongoname': 'UQx/Learn101x/1T2015', 'discussiontable': 'UQx-Learn101x-1T2015-prod', 'icon': 'fa-mortar-board', 'year': '2015'},
+    #'learn_101x_1T2015': {'dbname': 'UQx_Learn101x_1T2015', 'mongoname': 'UQx/Learn101x/1T2015', 'discussiontable': 'UQx-Learn101x-1T2015-prod', 'icon': 'fa-mortar-board', 'year': '2015'},
     'tropic_101x_2T2015': {'dbname': 'UQx_Tropic101_2T2015', 'mongoname': 'UQx/Tropic101/2T2015', 'discussiontable': 'UQx-Tropic101-2T2015-prod', 'icon': 'fa-tree', 'year': '2015'},
     'world_101x_2T2015': {'dbname': 'UQx_World101x_2T2015', 'mongoname': 'UQx/World101x/2T2015', 'discussiontable': 'UQx-World101x-2T2015-prod', 'icon': 'fa-map-marker', 'year': '2015'},
     'denial_101x_2T2015': {'dbname': 'UQx_Denial101x_2T2015', 'mongoname': 'UQx/Denial101x/2T2015', 'discussiontable': 'UQx-Denial101x-2T2015-prod', 'icon': 'fa-recycle', 'year': '2015'},
     'write_101x_2T2015': {'dbname': 'UQx_Write101x_2T2015', 'mongoname': 'UQx/Write101x/2T2015', 'discussiontable': 'UQx-Write101x-2T2015-prod', 'icon': 'fa-pencil', 'year': '2015'},
     'crime_101x_2T2015': {'dbname': 'UQx_Crime101x_2T2015', 'mongoname': 'UQx/Crime101x/2T2015', 'discussiontable': 'UQx-Crime101x-2T2015-prod', 'icon': 'fa-gavel', 'year': '2015'},
+    'bioimg_101x_2T2015':{'dbname':'UQx_BIOIMG101x_2T2015', 'mongoname':'UQx/BIOIMG101x/2T2015', 'discussiontable': 'UQx-BIOIMG101x-2T2015-prod', 'icon':'fa-desktop', 'year':'2015' },
+    'ielts_x_3T2015':{'dbname':'UQx_IELTSx_3T2015', 'mongoname':'UQx/IELTSx/3T2015', 'discussiontable': 'UQx-IELTSx-3T2015-prod', 'icon':'fa-book', 'year':'2015' },
+    'meta_101x_3T2015':{'dbname':'UQx_META101x_3T2015', 'mongoname':'UQx/META101x/3T2015', 'discussiontable': 'UQx-META101x-3T2015-prod', 'icon':'fa-coffee', 'year':'2015' },
+    'think_101x_2T2015':{'dbname':'UQx_Think101x_2T2015', 'mongoname':'UQx/Think101x/2T2015', 'discussiontable': 'UQx-Think101x-2T2015-prod', 'icon':'fa-heart', 'year':'2015' },
 
-    'biol1020_2015_S1': {'dbname': 'UQx_BIOL1020_2015_S1', 'mongoname': 'UQx/BIOL1020/2015/S1', 'discussiontable': '', 'icon': 'fa-mortar-board', 'year': '2015'},
 
 }
 
