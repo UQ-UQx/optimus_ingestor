@@ -93,6 +93,8 @@ class PersonCourse(base_service.BaseService):
                 cf_item = CFModel(course_id, course['dbname'], course['mongoname'], course['discussiontable'])
                 # Set cf_item course_launch_date
                 bad_start = False
+		course_launch_date=None
+		course_close_date=None
                 if 'start' in courseinfo:
                     try:
                         course_launch_time = dateutil.parser.parse(courseinfo['start'].replace('"', ""))

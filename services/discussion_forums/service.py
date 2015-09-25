@@ -9,7 +9,7 @@ import json
 from bson.objectid import ObjectId
 import datetime
 from pymongo.errors import OperationFailure
-
+from dateutil import parser
 
 class DiscussionForums(base_service.BaseService):
     """
@@ -72,8 +72,9 @@ class DiscussionForums(base_service.BaseService):
                     if '_id' in document:
                         try:
                             self.insert_with_id(document)
-                        except OperationFailure:
+                        except OperationFailure as err:
                             utils.log("ERROR: BAD ID FOR DOCUMENT" + str(document))
+			    utils.log("code is " + str(err.code))
                     else:
                         utils.log("ERROR: BAD ID FOR DOCUMENT" + str(document))
 
@@ -109,7 +110,7 @@ class DiscussionForums(base_service.BaseService):
                 if "$oid" in item:
                     document[key] = ObjectId(str(item["$oid"]))
                 if "$date" in item:
-                    document[key] = datetime.datetime.utcfromtimestamp(item["$date"]/1e3)
+                    document[key] =  parser.parse(item["$date"])   #datetime.datetime.utcfromtimestamp(item["$date"]/1e3)
             # Process "parent_ids"
             if key == "parent_ids" and item:
                 parent_ids = []
