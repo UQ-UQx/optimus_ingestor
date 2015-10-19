@@ -39,7 +39,7 @@ class IPToCountry(base_service.BaseService):
         self.ipfield = 'ip'
 
         self.geo_reader = None
-
+        self.city_reader = None        
         self.initialize()
 
     pass
@@ -72,7 +72,7 @@ class IPToCountry(base_service.BaseService):
                         toupdates = mongo_collection.find({self.ipfield: {'$exists': True}, 'country': {'$exists': False}})
                         utils.log("FOUND COUNTRY")
                         i = 0
-                        total = 0
+                        total = toupdates.count()
                         #for toupdate in toupdates:
                         #    total += 1
                         for toupdate in toupdates:
@@ -80,7 +80,16 @@ class IPToCountry(base_service.BaseService):
                                 try:
                                     country = self.geo_reader.country(toupdate[self.ipfield])
                                     isocountry = country.country.iso_code
-                                    mongo_collection.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry}})
+                                    isosubdiv=None
+                                    if isocountry=='AU':
+                                        if self.city_reader is None:
+                                            self.city_reader=geoip2.database.Reader(basepath+'/lib/GeoLite2-City.mmdb')
+                                        city=self.city_reader.city(toupdate[self.ipfield])
+                                        isosubdiv=city.subdivisions.most_specific.iso_code
+                                    if isosubdiv is not None:
+                                        mongo_collection.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry, "subdivision": isosubdiv}})
+                                    else:
+                                        mongo_collection.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry}})
                                     print "*** ADDING ADDRESS "+str(i)+" / "+str(total)
                                 except AddressNotFoundError:
                                     #utils.log("Could not find address for " + str(toupdate))

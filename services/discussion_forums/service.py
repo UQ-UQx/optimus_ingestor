@@ -94,31 +94,55 @@ class DiscussionForums(base_service.BaseService):
         else:
             pass
 
+    #@staticmethod
+    #def format_document2(document):
+    #    """
+    #    Formats the document for ingestion
+    #    :param document: The Document
+    #    :return The formatted Document
+    #    """
+    #    for key, item in document.items():
+    #        #replace $ in key to _ and . in key to -
+    #        new_key = key.replace("$", "_").replace(".", '"-')
+    #        document[new_key] = document.pop(key)
+    #        #process "$oid" and "$date" in item
+    #        if isinstance(item, type({})):
+    #            if "$oid" in item:
+    #                document[key] = ObjectId(str(item["$oid"]))
+    #            if "$date" in item:
+    #                document[key] =  parser.parse(item["$date"])   #datetime.datetime.utcfromtimestamp(item["$date"]/1e3)
+    #        # Process "parent_ids"
+    #        if key == "parent_ids" and item:
+    #            parent_ids = []
+    #            for sub_item in item:
+    #                if "$oid" in sub_item:
+    #                    parent_ids.append(ObjectId(str(sub_item["$oid"])))
+    #            document[key] = parent_ids
+    #    return document
+
     @staticmethod
-    def format_document(document):
-        """
-        Formats the document for ingestion
-        :param document: The Document
-        :return The formatted Document
-        """
-        for key, item in document.items():
-            #replace $ in key to _ and . in key to -
-            new_key = key.replace("$", "_").replace(".", '"-')
-            document[new_key] = document.pop(key)
-            #process "$oid" and "$date" in item
-            if isinstance(item, type({})):
-                if "$oid" in item:
-                    document[key] = ObjectId(str(item["$oid"]))
-                if "$date" in item:
-                    document[key] =  parser.parse(item["$date"])   #datetime.datetime.utcfromtimestamp(item["$date"]/1e3)
-            # Process "parent_ids"
-            if key == "parent_ids" and item:
-                parent_ids = []
-                for sub_item in item:
-                    if "$oid" in sub_item:
-                        parent_ids.append(ObjectId(str(sub_item["$oid"])))
-                document[key] = parent_ids
-        return document
+    def format_document(doc,outerdoc=None, k=None):
+        for key, item in doc.items():
+                if isinstance(item, type({})):
+                        DiscussionForums.format_document(item, doc, key)
+                if key=="$oid":
+                        outerdoc[k]=ObjectId(str(item))
+                elif key=="$date":
+                        outerdoc[k]=parser.parse(item)
+                elif key == "parent_ids": #and item:
+                        parent_ids = []
+                        for sub_item in item:
+                                if "$oid" in sub_item:
+                                        parent_ids.append(ObjectId(str(sub_item["$oid"])))
+                        doc[key] = parent_ids
+                else:
+                        new_key = key.replace("$", "_").replace(".", '"-')
+                        doc[new_key] = doc.pop(key)
+        return doc
+
+
+
+
 
     def connect_to_mongo(self, db_name="", collection_name=""):
         """
