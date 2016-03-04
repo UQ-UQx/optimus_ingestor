@@ -26,7 +26,9 @@ class DatabaseState(base_service.BaseService):
         self.loop = True
         #The amount of time to sleep in seconds
         self.sleep_time = 60
-
+        #text type table columns
+        self.textcols=['bio','feedback','feedback_text','raw_answer','explanation','goals','mailing_address']
+        
         self.initialize()
 
     pass
@@ -73,7 +75,9 @@ class DatabaseState(base_service.BaseService):
                     break
 
                 self.use_sql_database(database_name)
+                warnings.filterwarnings('ignore', category=MySQLdb.Warning)
                 self.sql_query("DROP TABLE IF EXISTS "+tmp_table_name+"", True)
+                warnings.filterwarnings('always', category=MySQLdb.Warning)                
                 if self.create_table_and_validate(database_name, tmp_table_name, columns):
                     self.sql_query("LOAD DATA LOCAL INFILE '"+path+"' INTO TABLE "+tmp_table_name+" FIELDS TERMINATED BY '\\t' LINES TERMINATED BY '\\n' IGNORE 1 LINES", True)
                     self.use_sql_database(database_name)
@@ -110,7 +114,7 @@ class DatabaseState(base_service.BaseService):
                     coltype = "longtext"
                 if column == "created" or column == "modified" or column == "created_date" or column == "modified_date" or column == "last_login" or column == "date_joined":
                     coltype = "datetime"
-                if column == "goals" or column == "mailing_address":
+                if column in self.textcols:
                     coltype = "text"
                 query += column.replace("\n", "")+" "+coltype+", "
 

@@ -17,7 +17,7 @@ import time
 import datetime
 import csv
 from pymongo import MongoClient
-
+import sys
 
 class PersonCourse(base_service.BaseService):
     """
@@ -86,6 +86,7 @@ class PersonCourse(base_service.BaseService):
                 # Get chapters from course info
                 json_file = course['dbname'].replace("_", "-") + '.json'
                 courseinfo = self.loadcourseinfo(json_file)
+                utils.log('PersonCourse: ' + str(course_id))
                 if courseinfo is None:
                     utils.log("Can not find course info for ." + str(course_id))
                     continue
@@ -225,7 +226,7 @@ class PersonCourse(base_service.BaseService):
                 # Set ndays_act and viewed based on the data in {courseware_studentmodule}
                 try:
                     utils.log("{ndays_act: courseware_studentmodule}")
-                    query = "SELECT student_id, COUNT(DISTINCT SUBSTRING(created, 1, 10)) FROM courseware_studentmodule GROUP BY student_id"
+                    query = "SELECT student_id, COUNT(DISTINCT SUBSTRING(created, 1, 10)) FROM courseware_studentmodule WHERE student_id is not null GROUP BY student_id"
                     course_cursor.execute(query)
                     result = course_cursor.fetchall()
                     for record in result:
@@ -239,10 +240,12 @@ class PersonCourse(base_service.BaseService):
                 except self.sql_pc_conn.ProgrammingError:
                     utils.log("Couldnt find courseware_studentmodule for " + course_id)
                     continue
+                except:
+                    utils.log("Unexpected error:" + sys.exc_info()[0])
 
                 # Set attempted problems
                 utils.log("{attempted_problems: courseware_studentmodule}")
-                query = "SELECT student_id, COUNT(state) FROM courseware_studentmodule WHERE state LIKE '%correct_map%' GROUP BY student_id"
+                query = "SELECT student_id, COUNT(state) FROM courseware_studentmodule WHERE state LIKE '%correct_map%' AND student_id IS NOT NULL GROUP BY student_id"
                 course_cursor.execute(query)
                 result = course_cursor.fetchall()
                 for record in result:
@@ -254,7 +257,7 @@ class PersonCourse(base_service.BaseService):
 
                 # Set nplay_video based on the data in {courseware_studentmodule}
                 utils.log("{nplay_video: courseware_studentmodule}")
-                query = "SELECT student_id, COUNT(*) FROM courseware_studentmodule WHERE module_type = 'video' GROUP BY student_id"
+                query = "SELECT student_id, COUNT(*) FROM courseware_studentmodule WHERE module_type = 'video' AND student_id IS NOT NULL GROUP BY student_id"
                 course_cursor.execute(query)
                 result = course_cursor.fetchall()
                 for record in result:
@@ -264,7 +267,7 @@ class PersonCourse(base_service.BaseService):
 
                 # Set nchapters and explored based on the data in {courseware_studentmodule}
                 utils.log("{nchapters: courseware_studentmodule}")
-                query = "SELECT student_id, COUNT(DISTINCT module_id) FROM courseware_studentmodule WHERE module_type = 'chapter' GROUP BY student_id"
+                query = "SELECT student_id, COUNT(DISTINCT module_id) FROM courseware_studentmodule WHERE module_type = 'chapter' AND student_id IS NOT NULL GROUP BY student_id"
                 course_cursor.execute(query)
                 result = course_cursor.fetchall()
                 for record in result:
@@ -286,8 +289,8 @@ class PersonCourse(base_service.BaseService):
                 user_posts = self.mongo_collection.aggregate([
                     #{"$match": {"author_id": {"$in": user_id_list}}},
                     {"$group": {"_id": "$author_id", "postSum": {"$sum": 1}}}
-                ])['result']
-
+                ])    # ['result']
+                
                 for item in user_posts:
                     if "_id" in item and item["_id"] != None:
                         user_id = int(item["_id"])
@@ -309,16 +312,20 @@ class PersonCourse(base_service.BaseService):
                     {"$match": {"context.course_id": pc_course_id}},
                     {"$sort": {"time": 1}},
                     {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}, "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
-                ], allowDiskUse=True)['result']
-
+                ], allowDiskUse=True)  # ['result']
+                if 'result' in user_events:
+                    user_events=user_events['result']
                 for item in user_events:
-                    user_id = item["_id"]
-                    if user_id in pc_dict:
-                        pc_dict[user_id].set_last_event(item["last_event"])
-                        pc_dict[user_id].set_nevents(item["eventSum"])
-                        pc_dict[user_id].set_final_cc_cname(item["countrySet"])
-                    else:
-                        utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
+                    try: 
+                        user_id = item["_id"]
+                        if user_id in pc_dict:
+                            pc_dict[user_id].set_last_event(item["last_event"])
+                            pc_dict[user_id].set_nevents(item["eventSum"])
+                            pc_dict[user_id].set_final_cc_cname(item["countrySet"])
+                        else:
+                            utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
+                    except TypeError as err:
+                        print "error %s item %s" % (err.message, item) 
 
                 # Set cf_item nregistered_students, nviewed_students, nexplored_students, ncertified_students
                 nregistered_students = sum(pc_item.registered for pc_item in pc_dict.values())
@@ -489,10 +496,13 @@ class PersonCourse(base_service.BaseService):
         print self
         courseurl = config.SERVER_URL + '/datasources/course_structure/' + json_file
         print "ATTEMPTING TO LOAD "+courseurl
-        courseinfofile = urllib2.urlopen(courseurl)
-        if courseinfofile:
-            courseinfo = json.load(courseinfofile)
-            return courseinfo
+        try:
+            courseinfofile = urllib2.urlopen(courseurl)
+            if courseinfofile:
+                courseinfo = json.load(courseinfofile)
+                return courseinfo
+        except urllib2.HTTPError as e:
+            print "Failed to load %s: %s " % (courseurl, e.message)
         return None
 
     def get_chapter(self, obj, found=None):
