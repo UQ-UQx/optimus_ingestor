@@ -32,6 +32,7 @@ class ServiceManager():
     def __init__(self):
         log("Starting Service Manager")
         self.setup_ingest_database()
+        self.setup_config_database()
 
     def load_services(self):
         """
@@ -72,7 +73,7 @@ class ServiceManager():
             cur.execute("CREATE DATABASE API")
             self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api', local_infile=1)
         if self.sql_db:
-            log("Creating table API")
+            log("Creating table ingestor if not exists")
             #Create the ingestor table if necessary
             cur = self.sql_db.cursor()
             query = "CREATE TABLE IF NOT EXISTS ingestor ( "
@@ -80,6 +81,35 @@ class ServiceManager():
             query += ");"
             cur.execute(query)
         warnings.filterwarnings('always', category=MySQLdb.Warning)
+        
+    def setup_config_database(self):
+        """
+        Ensures that the required DB and tables exist
+        """
+        warnings.filterwarnings('ignore', category=MySQLdb.Warning)
+        #Create and connect to the API database
+        log("Testing Database existance")
+        try:
+            self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api', local_infile=1)
+        except MySQLdb.OperationalError:
+            self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='mysql', local_infile=1)
+            cur = self.sql_db.cursor()
+            cur.execute("CREATE DATABASE API")
+            self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api', local_infile=1)
+        if self.sql_db:
+            log("Creating table config")
+            #Create the ingestor table if necessary
+            cur = self.sql_db.cursor()
+            query = "CREATE TABLE IF NOT EXISTS config ( "
+            query += "id int NOT NULL UNIQUE AUTO_INCREMENT PRIMARY KEY, param_name varchar(255), param_value varchar(1027), UNIQUE KEY name(param_name)"
+            query += ");"
+            cur.execute(query)
+            #Insert/update if exist config.IGNORE_SERVICES
+            query = "INSERT INTO config (param_name, param_value) VALUES ('%s', '%s') ON DUPLICATE KEY UPDATE param_value='%s'" % ('IGNORE_SERVICES', json.dumps(config.IGNORE_SERVICES), json.dumps(config.IGNORE_SERVICES))
+            cur.execute(query)
+            self.sql_db.commit();
+        warnings.filterwarnings('always', category=MySQLdb.Warning)
+    
 
     def add_to_ingestion(self, service_name, ingest_type, meta):
         """
