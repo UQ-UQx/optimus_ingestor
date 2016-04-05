@@ -33,7 +33,6 @@ class CourseStructure(base_service.BaseService):
 
         self.initialize()
 
-    pass
 
     def setup(self):
         """

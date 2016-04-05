@@ -98,7 +98,7 @@ class ServiceManager():
             self.sql_db = MySQLdb.connect(host=config.SQL_HOST, user=config.SQL_USERNAME, passwd=config.SQL_PASSWORD, db='api', local_infile=1)
         if self.sql_db:
             log("Creating table config")
-            #Create the ingestor table if necessary
+            #Create the config table if necessary
             cur = self.sql_db.cursor()
             query = "CREATE TABLE IF NOT EXISTS config ( "
             query += "id int NOT NULL UNIQUE AUTO_INCREMENT PRIMARY KEY, param_name varchar(255), param_value varchar(1027), UNIQUE KEY name(param_name)"
@@ -309,7 +309,6 @@ class Servicehandler():
         #@todo remove this
         #remove_all_data()
         self.manager.load_services()
-        print "FINISHED LOADING SERVICES"
         self.setup_webserver()
 
     def setup_webserver(self):
