@@ -28,8 +28,8 @@ class EdxCourseStructure(base_service.BaseService):
   		
 	def run(self):
 		ingests = self.get_ingests()
-		print 'run'
-		print ingests
+		#print 'run edx_cs'
+		#print ingests
 		for ingest in ingests:
 		    if ingest['type'] == 'file':
 		        self.start_ingest(ingest['id'])
@@ -52,8 +52,8 @@ def get_files(path):
       if os.path.isfile(os.path.join(main_path, file)) and file.endswith("-analytics.json"):
           required_files.append(os.path.join(main_path, file))
             
-    print 'required_files'
-    print required_files        
+    #print 'required_files'
+    #print required_files        
     return required_files
 
 
