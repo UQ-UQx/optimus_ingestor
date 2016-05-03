@@ -1,29 +1,36 @@
-import inspect
-import os
 import logging
-import datetime
-import config
+import logging.handlers
+import os
+import threading
 
 basepath = os.path.dirname(__file__)
+logpath = os.path.join(basepath, 'log')
+if not os.path.exists(logpath):
+    os.makedirs(logpath)
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-loggers = {}
 
-
-def log(message):
-    """
-    Logs a message to screen and to the file
-    :param message:
-    """
-    class_name = os.path.splitext(os.path.basename(inspect.stack()[1][1]))[0]
-    if class_name not in loggers:
-        log_file = basepath + '/logs/' + class_name + '.log'
-        new_logger = logging.getLogger(class_name)
-        new_log_handler = logging.FileHandler(log_file)
-        new_logger.addHandler(new_log_handler)
-        loggers[class_name] = new_logger
-    the_log = loggers[class_name]
-    the_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_message = the_time + ":" + " " + message
-    the_log.info(log_message)
+def getLogger(name):
+	logger = logging.getLogger(name)	
+	if not len(logger.handlers):
+	    logger.setLevel(logging.DEBUG)
+	    logger.addHandler(createFileHandler(name))
+	    logger.addHandler(createConsoleHandler(name))	    
+	return logger
+	
+# All messages will be writen in to log files
+# File paths based on the module which creates messages	
+def createFileHandler(name):
+	fh = logging.FileHandler(os.path.join(logpath, name + '.log'))
+	fh.setLevel(logging.DEBUG)
+	fh.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s', '%d/%m/%Y %H:%M:%S'))
+	return fh
+	
+# Msg Levels based on the thread which creates messages
+def createConsoleHandler(name):
+	ch = logging.StreamHandler()
+	if threading.current_thread().name == 'MainThread':
+	    ch.setLevel(logging.INFO)
+	else:
+	    ch.setLevel(logging.ERROR)
+	ch.setFormatter(logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(message)s', '%d/%m/%Y %H:%M:%S'))
+	return ch
