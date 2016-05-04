@@ -36,10 +36,10 @@ def execute_sql(**kwargs):
 	            mysql_conn.select_db('mysql')
 	        
 	        cur = mysql_conn.cursor()
-	        if 'sql' in kwargs:
-	            cur.execute(kwargs['sql'])
-	        if 'sql_arr' in kwargs:
-	            for query in kwargs['sql_arr']:
+	        if 'query' in kwargs:
+	            cur.execute(kwargs['query'])
+	        if 'query_arr' in kwargs:
+	            for query in kwargs['query_arr']:
 	                cur.execute(query)
 	        mysql_conn.commit()
 	        cur.close()

@@ -2,13 +2,16 @@
 """
 Initiates the Ingestor
 """
-
+from tendo import singleton
 import utils
 from service_handler import Servicehandler
 
-from tendo import singleton
+
 me = singleton.SingleInstance()
 
-utils.log("Starting Ingestor")
+logger = utils.getLogger(__name__)
+logger.info("Starting Ingestor")
 
 ingestor = Servicehandler()
+
+
