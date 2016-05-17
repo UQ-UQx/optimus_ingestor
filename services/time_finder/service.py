@@ -65,14 +65,22 @@ class TimeFinder(base_service.BaseService):
                         toupdates = mongo_collection.find({self.timefield: {'$exists': True}, 'time_date': {'$exists': False}}, timeout=False)
                         utils.log("FOUND TIME")
                         i = 0
+                        bulk_op = mongo_collection.initialize_unordered_bulk_op()
                         for toupdate in toupdates:
                             #print toupdate['_id']
                             #print toupdate['time']
                             #print ObjectId(toupdate['_id'])
                             #print dateutil.parser.parse(toupdate['time'])
-                            mongo_collection.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"time_date": dateutil.parser.parse(toupdate['time'])}})
+
+                            #mongo_collection.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"time_date": dateutil.parser.parse(toupdate['time'])}})
+                            bulk_op.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"time_date": dateutil.parser.parse(toupdate['time'])}})
                             total += 1
                             i += 1
+                        try:
+                            bulk_op.execute()
+                        except BulkWriteError as bwe:
+                            utils.log("TimeFinderService BulkWriteError "+ bwe.details)
+
                 utils.log("FINISHED TIME, INSERTED "+str(total))
                 self.save_run_ingest()
 

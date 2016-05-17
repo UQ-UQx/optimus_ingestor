@@ -39,7 +39,7 @@ class IPToCountry(base_service.BaseService):
         self.ipfield = 'ip'
 
         self.geo_reader = None
-        self.city_reader = None        
+        self.city_reader = None
         self.initialize()
 
     pass
@@ -75,6 +75,7 @@ class IPToCountry(base_service.BaseService):
                         total = toupdates.count()
                         #for toupdate in toupdates:
                         #    total += 1
+                        bulk_op = mongo_collection.initialize_unordered_bulk_op()
                         for toupdate in toupdates:
                             if toupdate[self.ipfield] != '::1' and toupdate[self.ipfield] != '':
                                 try:
@@ -87,9 +88,11 @@ class IPToCountry(base_service.BaseService):
                                         city=self.city_reader.city(toupdate[self.ipfield])
                                         isosubdiv=city.subdivisions.most_specific.iso_code
                                     if isosubdiv is not None:
-                                        mongo_collection.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry, "subdivision": isosubdiv}})
+                                        #mongo_collection.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry, "subdivision": isosubdiv}})
+                                        bulk_op.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry, "subdivision": isosubdiv}})
                                     else:
-                                        mongo_collection.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry}})
+                                        #mongo_collection.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry}})
+                                        bulk_op.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry}})
                                     print "*** ADDING ADDRESS "+str(i)+" / "+str(total)
                                 except AddressNotFoundError:
                                     #utils.log("Could not find address for " + str(toupdate))
@@ -97,6 +100,10 @@ class IPToCountry(base_service.BaseService):
                             else:
                                 mongo_collection.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"country": ""}})
                             i += 1
+                        try:
+                            bulk_op.execute()
+                        except BulkWriteError as bwe:
+                            utils.log("IPToCountry BulkWriteError "+ bwe.details)
                 utils.log("FINISHED COUNTRY")
                 self.save_run_ingest()
 
