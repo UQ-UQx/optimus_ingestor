@@ -68,7 +68,7 @@ def execute_query(**kwargs):
 		            mysql_conn.select_db(kwargs['db'])
 		        else: 
 		            mysql_conn.select_db(INGESTOR_DB)		        
-		        cur = mysql_conn.cursor()
+		        cur = mysql_conn.cursor(MySQLdb.cursors.DictCursor)
 
 	        if 'sql' in kwargs:
 	            cur.execute(kwargs['sql'])

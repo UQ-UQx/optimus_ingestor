@@ -29,8 +29,10 @@ def createFileHandler(name):
 def createConsoleHandler(name):
 	ch = logging.StreamHandler()
 	if threading.current_thread().name == 'MainThread':
-	    ch.setLevel(logging.INFO)
+	    #ch.setLevel(logging.INFO)
+	    ch.setLevel(logging.DEBUG)
 	else:
-	    ch.setLevel(logging.ERROR)
+	    #ch.setLevel(logging.ERROR)
+	    ch.setLevel(logging.DEBUG)
 	ch.setFormatter(logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(message)s', '%d/%m/%Y %H:%M:%S'))
 	return ch

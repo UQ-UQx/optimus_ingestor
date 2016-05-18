@@ -1,8 +1,10 @@
 
+import time
+import os
+
 import utils
 import mysqldb_ops
-
-ALIVE = True
+import config
 
 
 logger = utils.getLogger(__name__)
@@ -13,7 +15,11 @@ class BaseService(object):
 	The base service which all services extend
 	"""
 
-	def __init__(self):
+	def __init__(self, servicethreads):
+		print 'abc'
+		servicethreads.append(self)
+		print servicethreads
+
 		#Auto variables
 		#The lowercase name of the service
 		self.servicename = ""
@@ -21,18 +27,9 @@ class BaseService(object):
 		self.status = 'stopped'
 		#The last time the service was running
 		self.last_awake = ''
-		#The database for doing ingestion calls (service specific)
-		self.sql_db = None
-		#The current task
-		self.task = ""
-		#The current progress
-		self.task_progress = 0
-		#The amount of total progress for the current task
-		self.task_progress_total = 0
+
 
 		#Overriden variables
-		#The pretty name of the service
-		self.pretty_name = "Unknown Service"
 		#Whether the service is enabled
 		self.enabled = False
 		#Whether to run more than once
@@ -46,16 +43,20 @@ class BaseService(object):
 		Sets default status and begins the run loop
 		"""
 		if self.enabled:
-			self.servicename = str(self.__class__.__name__).lower()
+			self.servicename = self.get_name()
 			logger.info("Starting service " + self.servicename)
 			self.status = 'loading'
 			self.setup()
-			while self.loop and ALIVE
+			while self.loop:
 				self.status = 'running'
 				self.run()
 				self.status = 'sleeping'
 				self.last_awake = time.strftime('%Y-%m-%d %H:%M:%S')
 				time.sleep(self.sleep_time)
+
+	def get_name(self):
+		print 'get_name ' + self.__class__.__name__
+		return self.__class__.__name__
 
 	def setup(self):
 		"""
@@ -152,7 +153,11 @@ class BaseService(object):
 			task['meta'] = row[3]
 			tasks.append(task)
 		mysqldb_ops.close_cur(cur)
-		return tasks		
+		return tasks
+
+	@staticmethod
+	def get_data_path():
+		return os.path.realpath(config.DATA_PATH)		
 
 	@staticmethod
 	def start_task(task_id):
