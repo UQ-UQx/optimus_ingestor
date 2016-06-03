@@ -12,6 +12,7 @@ import time
 import utils
 import mysqldb_ops
 import config
+import base_service
 
 logger = utils.getLogger(__name__)
 
@@ -43,9 +44,19 @@ class ServiceManager():
 					service_thread.daemon = True
 					service_thread.start()
 
-		time.sleep(60)
-		print 'aha?'
-		print self.servicethreads
+		self.sleepmainthread()
+
+
+
+	def sleepmainthread(self):
+		"""
+		Sleeps the main thread
+		"""
+		while True and base_service.ALIVE:
+			time.sleep(60*60)
+
+		logger.info("Exiting ingestor")
+
 
 
 	def setup_database(self):
@@ -62,7 +73,7 @@ class ServiceManager():
 		sql_arr = []
 		# Table: tasks 
 		sql = "CREATE TABLE IF NOT EXISTS tasks ( "
-		sql += "id int NOT NULL UNIQUE AUTO_INCREMENT, service_name varchar(255), type varchar(255), meta varchar(255), started int DEFAULT 0, completed int DEFAULT 0, created datetime NULL, started_date datetime NULL, completed_date datetime NULL, PRIMARY KEY (id)"
+		sql += "id int NOT NULL UNIQUE AUTO_INCREMENT, service_name varchar(255), type varchar(255), meta varchar(255), prepare_id int default 0, dependent varchar(511) default '', started int DEFAULT 0, completed int DEFAULT 0, started_date datetime NULL, completed_date datetime NULL, PRIMARY KEY (id)"
 		sql += ");"
 		sql_arr.append(sql)
 
@@ -75,7 +86,7 @@ class ServiceManager():
 
 		# Table: courses
 		sql = "CREATE TABLE IF NOT EXISTS courses ( "
-		sql += "id int NOT NULL UNIQUE AUTO_INCREMENT PRIMARY KEY, org varchar(255), course varchar(255), run varchar(255), site varchar(255), course_id varchar(255), ingest boolean default 1, api boolean default 1, dashboard boolean default 1"
+		sql += "id int NOT NULL UNIQUE AUTO_INCREMENT PRIMARY KEY, org varchar(255), course varchar(255), run varchar(255), site varchar(255), course_id varchar(255), has_data boolean default 0, ingest boolean default 1, api boolean default 1, dashboard boolean default 1"
 		sql += ");"
 		sql_arr.append(sql)
 
@@ -106,6 +117,7 @@ class ServiceManager():
 
 		return insert_arr
 
+
 class Servicehandler():
 	"""
 	Service handler deals with the threaded nature of the application
@@ -123,5 +135,6 @@ class Servicehandler():
 	def __init__(self):
 		self.manager = ServiceManager()
 		self.manager.load_services()
+
 
 
