@@ -123,7 +123,7 @@ class DatabaseState(base_service.BaseService):
                 if column in self.textcols:
                     coltype = "text"
 
-                if column in ['student_id', 'module_type']:
+                if column in ['student_id', 'module_type', 'user_id']:
                     index_query += " ADD KEY '%s' ('%s'), " % (column, column)
                     # ADD UNIQUE KEY `id` (`id`),
                     requires_index = True

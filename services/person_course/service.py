@@ -94,8 +94,8 @@ class PersonCourse(base_service.BaseService):
                 cf_item = CFModel(course_id, course['dbname'], course['mongoname'], course['discussiontable'])
                 # Set cf_item course_launch_date
                 bad_start = False
-		course_launch_date=None
-		course_close_date=None
+                course_launch_date=None
+                course_close_date=None
                 if 'start' in courseinfo:
                     try:
                         course_launch_time = dateutil.parser.parse(courseinfo['start'].replace('"', ""))
@@ -290,7 +290,7 @@ class PersonCourse(base_service.BaseService):
                     #{"$match": {"author_id": {"$in": user_id_list}}},
                     {"$group": {"_id": "$author_id", "postSum": {"$sum": 1}}}
                 ])    # ['result']
-                
+
                 for item in user_posts:
                     if "_id" in item and item["_id"] != None:
                         user_id = int(item["_id"])
@@ -316,7 +316,7 @@ class PersonCourse(base_service.BaseService):
                 if 'result' in user_events:
                     user_events=user_events['result']
                 for item in user_events:
-                    try: 
+                    try:
                         user_id = item["_id"]
                         if user_id in pc_dict:
                             pc_dict[user_id].set_last_event(item["last_event"])
@@ -325,7 +325,7 @@ class PersonCourse(base_service.BaseService):
                         else:
                             utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
                     except TypeError as err:
-                        print "error %s item %s" % (err.message, item) 
+                        print "error %s item %s" % (err.message, item)
 
                 # Set cf_item nregistered_students, nviewed_students, nexplored_students, ncertified_students
                 nregistered_students = sum(pc_item.registered for pc_item in pc_dict.values())
