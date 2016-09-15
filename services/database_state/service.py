@@ -132,7 +132,11 @@ class DatabaseState(base_service.BaseService):
             query = query[:-2]
             query += " );"
             index_query = index_query[:-2]
-            index_query += " );"
+            #index_query += " );"
+            # Change imported tables to use MyISAM instead of Innodb.
+            # MYISAM is faster for select queries when no inserts/updates are required
+            # http://stackoverflow.com/questions/18909405/mysql-issue-with-the-performance-tuning
+            index_query += " ) ENGINE=MyISAM;"
             warnings.filterwarnings('ignore', category=MySQLdb.Warning)
             self.sql_query(query)
             if requires_index:
