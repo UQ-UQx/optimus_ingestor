@@ -28,7 +28,7 @@ class DatabaseState(base_service.BaseService):
         self.sleep_time = 60
         #text type table columns
         self.textcols=['bio','feedback','feedback_text','raw_answer','explanation','goals','mailing_address']
-        
+
         self.initialize()
 
     pass
@@ -77,7 +77,7 @@ class DatabaseState(base_service.BaseService):
                 self.use_sql_database(database_name)
                 warnings.filterwarnings('ignore', category=MySQLdb.Warning)
                 self.sql_query("DROP TABLE IF EXISTS "+tmp_table_name+"", True)
-                warnings.filterwarnings('always', category=MySQLdb.Warning)                
+                warnings.filterwarnings('always', category=MySQLdb.Warning)
                 if self.create_table_and_validate(database_name, tmp_table_name, columns):
                     self.sql_query("LOAD DATA LOCAL INFILE '"+path+"' INTO TABLE "+tmp_table_name+" FIELDS TERMINATED BY '\\t' LINES TERMINATED BY '\\n' IGNORE 1 LINES", True)
                     self.use_sql_database(database_name)
@@ -104,6 +104,12 @@ class DatabaseState(base_service.BaseService):
             query = "CREATE TABLE IF NOT EXISTS "
             query += table_name
             query += " ( "
+
+            #create index creation query
+            index_query = "ALTER TABLE "
+            index_query += table_name
+            requires_index = false
+
             for column in columns:
                 coltype = "varchar(255)"
                 if column == "id":
@@ -116,12 +122,21 @@ class DatabaseState(base_service.BaseService):
                     coltype = "datetime"
                 if column in self.textcols:
                     coltype = "text"
+
+                if column in ['student_id', 'module_type']:
+                    index_query += " ADD KEY '%s' ('%s'), " % (column, column)
+                    # ADD UNIQUE KEY `id` (`id`),
+                    requires_index = True
                 query += column.replace("\n", "")+" "+coltype+", "
 
             query = query[:-2]
             query += " );"
+            index_query = index_query[:-2]
+            index_query += " );"
             warnings.filterwarnings('ignore', category=MySQLdb.Warning)
             self.sql_query(query)
+            if requires_index:
+                self.sql_query(index_query)
             warnings.filterwarnings('always', category=MySQLdb.Warning)
             isvalid = True
 
