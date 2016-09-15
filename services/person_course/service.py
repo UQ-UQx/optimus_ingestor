@@ -245,7 +245,9 @@ class PersonCourse(base_service.BaseService):
 
                 # Set attempted problems
                 utils.log("{attempted_problems: courseware_studentmodule}")
-                query = "SELECT student_id, COUNT(state) FROM courseware_studentmodule WHERE state LIKE '%correct_map%' AND student_id IS NOT NULL GROUP BY student_id"
+                #update query to use full text search on MyISAM table
+                #query = "SELECT student_id, COUNT(state) FROM courseware_studentmodule WHERE state LIKE '%correct_map%' AND student_id IS NOT NULL GROUP BY student_id"
+                query = "SELECT student_id, COUNT(state) FROM courseware_studentmodule WHERE MATCH (state) AGAINST ('correct_map') AND student_id IS NOT NULL GROUP BY student_id"
                 course_cursor.execute(query)
                 result = course_cursor.fetchall()
                 for record in result:

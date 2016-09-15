@@ -125,8 +125,13 @@ class DatabaseState(base_service.BaseService):
 
                 if column in ['student_id', 'module_type', 'user_id']:
                     index_query += " ADD KEY '%s' ('%s'), " % (column, column)
-                    # ADD UNIQUE KEY `id` (`id`),
                     requires_index = True
+
+                if column in ['state']:
+                    #Enable full text searching on state field which stores json
+                    index_query += " ADD FULLTEXT KEY '%s' ('%s'), " % (column, column)
+                    requires_index = True
+
                 query += column.replace("\n", "")+" "+coltype+", "
 
             query = query[:-2]
