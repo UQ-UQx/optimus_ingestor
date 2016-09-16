@@ -81,8 +81,9 @@ class PersonCourse(base_service.BaseService):
             # Clean 'pc_table'
             self.clean_pc_db()
 
+            print self.courses.items()
             for course_id, course in self.courses.items():
-
+                print "running", course_id
                 # Get chapters from course info
                 json_file = course['dbname'].replace("_", "-") + '.json'
                 courseinfo = self.loadcourseinfo(json_file)
