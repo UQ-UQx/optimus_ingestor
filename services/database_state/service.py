@@ -108,7 +108,7 @@ class DatabaseState(base_service.BaseService):
             #create index creation query
             index_query = "ALTER TABLE "
             index_query += table_name
-            requires_index = false
+            requires_index = False
 
             for column in columns:
                 coltype = "varchar(255)"
