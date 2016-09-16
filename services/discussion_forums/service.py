@@ -66,7 +66,7 @@ class DiscussionForums(base_service.BaseService):
                 self.connect_to_mongo(self.mongo_dbname, coursename)
 
                 #ensure index on author_id which is used for queries
-                create_index_status = self.mongo_collection.create_index([("author_id")])
+                create_index_status = self.mongo_collection.create_index("author_id")
                 utils.log("Mongo Db Discussion Forum Index Created Status " + create_index_status)
 
                 ingest_file = open(path)
