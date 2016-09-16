@@ -228,6 +228,7 @@ class PersonCourse(base_service.BaseService):
                     # Set ndays_act and viewed based on the data in {courseware_studentmodule}
                     try:
                         utils.log("{ndays_act: courseware_studentmodule}")
+                        # SELECT student_id, COUNT(DISTINCT TO_DAYS(created)) FROM courseware_studentmodule WHERE student_id is not null GROUP BY student_id
                         query = "SELECT student_id, COUNT(DISTINCT SUBSTRING(created, 1, 10)) FROM courseware_studentmodule WHERE student_id is not null GROUP BY student_id"
                         course_cursor.execute(query)
                         result = course_cursor.fetchall()

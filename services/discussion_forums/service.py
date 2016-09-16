@@ -72,15 +72,18 @@ class DiscussionForums(base_service.BaseService):
                 ingest_file = open(path)
 
                 for line in ingest_file:
-                    document = json.loads(line)
-                    if '_id' in document:
-                        try:
-                            self.insert_with_id(document)
-                        except OperationFailure as err:
+                    try:
+                        document = json.loads(line)
+                        if '_id' in document:
+                            try:
+                                self.insert_with_id(document)
+                            except OperationFailure as err:
+                                utils.log("ERROR: BAD ID FOR DOCUMENT" + str(document))
+                                utils.log("code is " + str(err.code))
+                        else:
                             utils.log("ERROR: BAD ID FOR DOCUMENT" + str(document))
-			    utils.log("code is " + str(err.code))
-                    else:
-                        utils.log("ERROR: BAD ID FOR DOCUMENT" + str(document))
+                    except:
+                        utils.log("ERROR: INVALID Discussion Forum JSON" + str(document))
 
                 self.finish_ingest(ingest['id'])
         pass
