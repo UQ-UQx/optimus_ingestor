@@ -81,6 +81,8 @@ class TimeFinder(base_service.BaseService):
                             bulk_op.execute()
                         except BulkWriteError as bwe:
                             utils.log("TimeFinderService BulkWriteError "+ bwe.details)
+                        except:
+                            utils.log("IPToCountry Exception")
                 utils.log("FINISHED TIME, INSERTED "+str(total))
                 self.save_run_ingest()
 

@@ -67,7 +67,7 @@ class DatabaseState(base_service.BaseService):
                 tmp_table_name = "tmp_"+table_name
 
                 ingest_file = open(path)
-
+                print "Ingest file:", ingest_file
                 # split the headers
                 columns = []
                 for line in ingest_file:

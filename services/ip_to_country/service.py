@@ -106,6 +106,8 @@ class IPToCountry(base_service.BaseService):
                             bulk_op.execute()
                         except BulkWriteError as bwe:
                             utils.log("IPToCountry BulkWriteError "+ bwe.details)
+                        except:
+                            utils.log("IPToCountry Exception")
                 utils.log("FINISHED COUNTRY")
                 self.save_run_ingest()
 
