@@ -91,16 +91,19 @@ class IPToCountry(base_service.BaseService):
                                         isosubdiv=city.subdivisions.most_specific.iso_code
                                     if isosubdiv is not None:
                                         #mongo_collection.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry, "subdivision": isosubdiv}})
-                                        bulk_op.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry, "subdivision": isosubdiv}})
+                                        #bulk_op.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry, "subdivision": isosubdiv}})
+                                        bulk_op.find({'_id': ObjectId(toupdate['_id'])}).update({"$set": {"country": isocountry, "subdivision": isosubdiv}})
                                     else:
                                         #mongo_collection.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry}})
-                                        bulk_op.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry}})
+                                        #bulk_op.update({"_id": toupdate['_id']}, {"$set": {"country": isocountry}})
+                                        bulk_op.find({'_id': ObjectId(toupdate['_id'])}).update({"$set": {"country": isocountry}})
                                     print "*** ADDING ADDRESS "+str(i)+" / "+str(total)
                                 except AddressNotFoundError:
                                     #utils.log("Could not find address for " + str(toupdate))
                                     pass
                             else:
-                                mongo_collection.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"country": ""}})
+                                #mongo_collection.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"country": ""}})
+                                bulk_op.find({'_id': ObjectId(toupdate['_id'])}).update({"$set": {"country": ""}})
                             i += 1
                         try:
                             bulk_op.execute()

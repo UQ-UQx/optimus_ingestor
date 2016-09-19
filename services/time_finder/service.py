@@ -74,7 +74,8 @@ class TimeFinder(base_service.BaseService):
                             #print dateutil.parser.parse(toupdate['time'])
 
                             #mongo_collection.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"time_date": dateutil.parser.parse(toupdate['time'])}})
-                            bulk_op.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"time_date": dateutil.parser.parse(toupdate['time'])}})
+                            #bulk_op.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"time_date": dateutil.parser.parse(toupdate['time'])}})
+                            bulk_op.find({'_id': ObjectId(toupdate['_id'])}).update({"$set": {"time_date": dateutil.parser.parse(toupdate['time'])}})
                             total += 1
                             i += 1
                         try:
