@@ -359,7 +359,8 @@ class PersonCourse(base_service.BaseService):
             self.datadump2csv()
             self.save_run_ingest()
             utils.log("Person course completed")
-
+        else:
+            print "Other Services have not completed yet"
     # Connects to a Mongo Database
     def connect_to_mongo(self, db_name="", collection_name=""):
         """
