@@ -314,11 +314,17 @@ class PersonCourse(base_service.BaseService):
                     self.connect_to_mongo(self.mongo_dbname, self.mongo_collectionname)
 
                     # Simplify Mongo Aggregate Queries
-                    # split up finding the country codes and the total events
+                    # split up finding the country codes and the total events and simplify by removing sort and the time of the last event
+                    '''
                     user_events = self.mongo_collection.aggregate([
                         {"$match": {"context.course_id": pc_course_id}},
                         {"$sort": {"time": 1}},
                         {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
+                    ], allowDiskUse=True)  # ['result']
+                    '''
+                    user_events = self.mongo_collection.aggregate([
+                        {"$match": {"context.course_id": pc_course_id}},
+                        {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}}}
                     ], allowDiskUse=True)  # ['result']
 
                     if 'result' in user_events:
@@ -328,7 +334,7 @@ class PersonCourse(base_service.BaseService):
                         try:
                             user_id = item["_id"]
                             if user_id in pc_dict:
-                                pc_dict[user_id].set_last_event(item["last_event"])
+                                #pc_dict[user_id].set_last_event(item["last_event"])
                                 pc_dict[user_id].set_nevents(item["eventSum"])
                                 #pc_dict[user_id].set_final_cc_cname(item["countrySet"])
                             else:
