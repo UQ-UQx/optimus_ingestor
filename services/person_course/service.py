@@ -371,6 +371,11 @@ class PersonCourse(base_service.BaseService):
 
                     db.clickstream.aggregate([
                         {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
+                        {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}}}
+                    ], {allowDiskUse: true})
+
+                    db.clickstream.aggregate([
+                        {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
                         {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}}}
                     ], {allowDiskUse: true})
                     '''
