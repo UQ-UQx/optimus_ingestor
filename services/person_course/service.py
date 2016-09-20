@@ -313,28 +313,16 @@ class PersonCourse(base_service.BaseService):
                     #self.mongo_collectionname = "clickstream_hypers_301x_sample"
                     self.connect_to_mongo(self.mongo_dbname, self.mongo_collectionname)
 
+                    # Simplify Mongo Aggregate Queries
+                    # split up finding the country codes and the total events
                     user_events = self.mongo_collection.aggregate([
                         {"$match": {"context.course_id": pc_course_id}},
                         {"$sort": {"time": 1}},
-                        {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}, "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
+                        {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
                     ], allowDiskUse=True)  # ['result']
 
-                    '''
-                    db.clickstream.aggregate([
-                        {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
-                        {"$sort": {"time": 1}},
-                        {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}, "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
-                    ], {allowDiskUse: true})
-
-                    db.clickstream.aggregate([
-                        {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
-                        {"$sort": {"time": 1}},
-                        {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}}}
-                    ], {allowDiskUse: true})
-                    '''
-
                     if 'result' in user_events:
-                        print "logs clickstream aggregate query completed"
+                        print "logs clickstream aggregate user_events query completed"
                         user_events=user_events['result']
                     for item in user_events:
                         try:
@@ -342,11 +330,44 @@ class PersonCourse(base_service.BaseService):
                             if user_id in pc_dict:
                                 pc_dict[user_id].set_last_event(item["last_event"])
                                 pc_dict[user_id].set_nevents(item["eventSum"])
+                                #pc_dict[user_id].set_final_cc_cname(item["countrySet"])
+                            else:
+                                utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
+                        except TypeError as err:
+                            print "error %s item %s" % (err.message, item)
+
+                    user_countries = self.mongo_collection.aggregate([
+                        {"$match": {"context.course_id": pc_course_id}},
+                        {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}}}
+                    ], allowDiskUse=True)  # ['result']
+
+                    if 'result' in user_countries:
+                        print "logs clickstream aggregate user_countries query completed"
+                        user_countries=user_countries['result']
+                    for item in user_countries:
+                        try:
+                            user_id = item["_id"]
+                            if user_id in pc_dict:
+                                #pc_dict[user_id].set_last_event(item["last_event"])
+                                #pc_dict[user_id].set_nevents(item["eventSum"])
                                 pc_dict[user_id].set_final_cc_cname(item["countrySet"])
                             else:
                                 utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
                         except TypeError as err:
                             print "error %s item %s" % (err.message, item)
+
+                    '''
+                    db.clickstream.aggregate([
+                        {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
+                        {"$sort": {"time": 1}},
+                        {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}, "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
+                    ], {allowDiskUse: true})
+
+                    db.clickstream.aggregate([
+                        {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
+                        {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}}}
+                    ], {allowDiskUse: true})
+                    '''
 
                     # Set cf_item nregistered_students, nviewed_students, nexplored_students, ncertified_students
                     nregistered_students = sum(pc_item.registered for pc_item in pc_dict.values())
