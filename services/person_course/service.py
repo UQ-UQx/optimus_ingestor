@@ -318,7 +318,23 @@ class PersonCourse(base_service.BaseService):
                     {"$sort": {"time": 1}},
                     {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}, "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
                 ], allowDiskUse=True)  # ['result']
+
+                '''
+                db.clickstream.aggregate([
+                    {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
+                    {"$sort": {"time": 1}},
+                    {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}, "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
+                ], {allowDiskUse: true})
+
+                db.clickstream.aggregate([
+                    {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
+                    {"$sort": {"time": 1}},
+                    {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}}}
+                ], {allowDiskUse: true})
+                '''
+
                 if 'result' in user_events:
+                    print "logs clickstream aggregate query completed"
                     user_events=user_events['result']
                 for item in user_events:
                     try:
