@@ -79,11 +79,14 @@ class TimeFinder(base_service.BaseService):
                             total += 1
                             i += 1
                         try:
-                            bulk_op.execute()
+                            if (toupdates.count()>0):
+                                bulk_op.execute()
+                            else:
+                                utils.log("TimeFinderService No Documents to Process")
                         except BulkWriteError as bwe:
                             utils.log("TimeFinderService BulkWriteError "+ bwe.details)
                         except:
-                            utils.log("IPToCountry Exception")
+                            utils.log("TimeFinderService Exception")
                 utils.log("FINISHED TIME, INSERTED "+str(total))
                 self.save_run_ingest()
 

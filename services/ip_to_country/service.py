@@ -105,8 +105,12 @@ class IPToCountry(base_service.BaseService):
                                 #mongo_collection.update({"_id": ObjectId(toupdate['_id'])}, {"$set": {"country": ""}})
                                 bulk_op.find({'_id': ObjectId(toupdate['_id'])}).update({"$set": {"country": ""}})
                             i += 1
+
                         try:
-                            bulk_op.execute()
+                            if (toupdates.count()>0):
+                                bulk_op.execute()
+                            else:
+                                utils.log("IPToCountry No Documents to Process")
                         except BulkWriteError as bwe:
                             utils.log("IPToCountry BulkWriteError "+ bwe.details)
                         except:
