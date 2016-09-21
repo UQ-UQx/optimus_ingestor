@@ -326,9 +326,8 @@ class PersonCourse(base_service.BaseService):
                         {"$match": {"context.course_id": pc_course_id}},
                         {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}}}
                     ], allowDiskUse=True)  # ['result']
-
+                    utils.log("{logs event counts cursor returned}")
                     if 'result' in user_events:
-                        print "logs clickstream aggregate user_events query completed"
                         user_events=user_events['result']
                     for item in user_events:
                         try:
@@ -341,14 +340,13 @@ class PersonCourse(base_service.BaseService):
                                 utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
                         except TypeError as err:
                             print "error %s item %s" % (err.message, item)
-
+                    utils.log("{logs country sets started}")
                     user_countries = self.mongo_collection.aggregate([
                         {"$match": {"context.course_id": pc_course_id}},
                         {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}}}
                     ], allowDiskUse=True)  # ['result']
-
+                    utils.log("{logs country sets cursor returned}")
                     if 'result' in user_countries:
-                        print "logs clickstream aggregate user_countries query completed"
                         user_countries=user_countries['result']
                     for item in user_countries:
                         try:
@@ -379,7 +377,7 @@ class PersonCourse(base_service.BaseService):
                         {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}}}
                     ], {allowDiskUse: true})
                     '''
-
+                    utils.log("{logs completed}")
                     # Set cf_item nregistered_students, nviewed_students, nexplored_students, ncertified_students
                     nregistered_students = sum(pc_item.registered for pc_item in pc_dict.values())
                     nviewed_students = sum(pc_item.viewed for pc_item in pc_dict.values())
