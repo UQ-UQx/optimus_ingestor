@@ -344,7 +344,7 @@ class PersonCourse(base_service.BaseService):
                                 student_countryset[user_id] = student_countryset.add(item["country"])
                             else:
                                 student_eventcount[user_id] = Set()
-                    for u in student_eventcount:
+                    for u in student_eventcount: #
                         try:
                             user_id = u
                             if user_id in pc_dict:
