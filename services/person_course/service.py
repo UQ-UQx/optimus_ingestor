@@ -334,16 +334,15 @@ class PersonCourse(base_service.BaseService):
                     if 'result' in user_events:
                         user_events=user_events['result']
                     for item in user_events:
-                        try:
-                            user_id = item["context.user_id"]
-                            if user_id in student_eventcount:
-                                student_eventcount[user_id] = student_eventcount[user_id] + 1
-                            else:
-                                student_eventcount[user_id] = 0
-                            if user_id in student_countryset:
-                                student_countryset[user_id] = student_countryset.add(item["country"])
-                            else:
-                                student_eventcount[user_id] = Set()
+                        user_id = item["context.user_id"]
+                        if user_id in student_eventcount:
+                            student_eventcount[user_id] = student_eventcount[user_id] + 1
+                        else:
+                            student_eventcount[user_id] = 0
+                        if user_id in student_countryset:
+                            student_countryset[user_id] = student_countryset.add(item["country"])
+                        else:
+                            student_eventcount[user_id] = Set()
                     for u in student_eventcount: #
                         try:
                             user_id = u
