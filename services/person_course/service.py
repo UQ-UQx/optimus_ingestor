@@ -18,6 +18,7 @@ import datetime
 import csv
 from pymongo import MongoClient
 import sys
+from sets import Set
 
 class PersonCourse(base_service.BaseService):
     """
@@ -322,6 +323,41 @@ class PersonCourse(base_service.BaseService):
                         {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
                     ], allowDiskUse=True)  # ['result']
                     '''
+                    # Trying if looping is going to be fasters than a MongoDB query until Mongo is sharded
+
+                    user_events = self.mongo_collection.find( { "context.course_id": pc_course_id }, { "context.user_id": 1, "country": 1 }, allowDiskUse=True)
+
+                    student_eventcount = {}
+                    student_countryset = {}
+
+                    utils.log("{logs event counts cursor returned}")
+                    if 'result' in user_events:
+                        user_events=user_events['result']
+                    for item in user_events:
+                        try:
+                            user_id = item["context.user_id"]
+                            if user_id in student_eventcount:
+                                student_eventcount[user_id] = student_eventcount[user_id] + 1
+                            else:
+                                student_eventcount[user_id] = 0
+                            if user_id in student_countryset:
+                                student_countryset[user_id] = student_countryset.add(item["country"])
+                            else:
+                                student_eventcount[user_id] = Set()
+
+                    for u in student_eventcount:
+                        try:
+                            user_id = u
+                            if user_id in pc_dict:
+                                pc_dict[user_id].set_nevents(student_eventcount[user_id])
+                                countryset_as_string = ','.join("'{0}'".format(x) for x in student_countryset[user_id])
+                                pc_dict[user_id].set_final_cc_cname("[" + countryset_as_string + "]")
+                            else:
+                                utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
+                        except TypeError as err:
+                            print "error %s item %s" % (err.message, item)
+
+                    '''
                     user_events = self.mongo_collection.aggregate([
                         {"$match": {"context.course_id": pc_course_id}},
                         {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}}}
@@ -340,6 +376,7 @@ class PersonCourse(base_service.BaseService):
                                 utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
                         except TypeError as err:
                             print "error %s item %s" % (err.message, item)
+
                     utils.log("{logs country sets started}")
                     user_countries = self.mongo_collection.aggregate([
                         {"$match": {"context.course_id": pc_course_id}},
@@ -359,7 +396,7 @@ class PersonCourse(base_service.BaseService):
                                 utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
                         except TypeError as err:
                             print "error %s item %s" % (err.message, item)
-
+                    '''
                     '''
                     db.clickstream.aggregate([
                         {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
