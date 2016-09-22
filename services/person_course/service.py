@@ -324,7 +324,7 @@ class PersonCourse(base_service.BaseService):
                     ], allowDiskUse=True)  # ['result']
                     '''
                     # Trying if looping is going to be fasters than a MongoDB query until Mongo is sharded
-
+                    '''
                     user_events = self.mongo_collection.find( { "context.course_id": pc_course_id }, { "context.user_id": 1, "country": 1 }, allowDiskUse=True)
 
                     student_eventcount = {}
@@ -354,8 +354,8 @@ class PersonCourse(base_service.BaseService):
                                 utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
                         except TypeError as err:
                             print "error %s item %s" % (err.message, item)
-
                     '''
+
                     user_events = self.mongo_collection.aggregate([
                         {"$match": {"context.course_id": pc_course_id}},
                         {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}}}
@@ -394,7 +394,7 @@ class PersonCourse(base_service.BaseService):
                                 utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
                         except TypeError as err:
                             print "error %s item %s" % (err.message, item)
-                    '''
+
                     '''
                     db.clickstream.aggregate([
                         {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
