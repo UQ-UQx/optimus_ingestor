@@ -291,7 +291,7 @@ class PersonCourse(base_service.BaseService):
                     self.mongo_dbname = "discussion_forum"
                     self.mongo_collectionname = course['discussiontable']
                     self.connect_to_mongo(self.mongo_dbname, self.mongo_collectionname)
-
+                    '''
                     user_posts = self.mongo_collection.aggregate([
                         #{"$match": {"author_id": {"$in": user_id_list}}},
                         {"$group": {"_id": "$author_id", "postSum": {"$sum": 1}}}
@@ -306,6 +306,7 @@ class PersonCourse(base_service.BaseService):
                                 utils.log("Author id: %s does not exist in {auth_user}." % user_id)
                         else:
                             utils.log("Author id: %s does not exist in {auth_user}." % user_id)
+                    '''
 
                     # Tracking logs
                     utils.log("{logs}")
