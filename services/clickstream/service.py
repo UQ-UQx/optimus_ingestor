@@ -38,7 +38,7 @@ class Clickstream(base_service.BaseService):
         """
         Set initial variables before the run loop starts
         """
-        ensure_mongo_indexes()
+        #ensure_mongo_indexes()
         pass
 
     def run(self):

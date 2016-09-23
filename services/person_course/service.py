@@ -324,7 +324,7 @@ class PersonCourse(base_service.BaseService):
                     ], allowDiskUse=True)  # ['result']
                     '''
                     # Trying if looping is going to be fasters than a MongoDB query until Mongo is sharded
-
+                    '''
                     user_events = self.mongo_collection.find( { "context.course_id": pc_course_id }, { "context.user_id": 1, "country": 1 }, allowDiskUse=True)
 
                     student_eventcount = {}
@@ -359,6 +359,7 @@ class PersonCourse(base_service.BaseService):
                         except TypeError as err:
                             print "error %s item %s" % (err.message, item)
 
+                    '''
                     '''
                     user_events = self.mongo_collection.aggregate([
                         {"$match": {"context.course_id": pc_course_id}},
@@ -416,7 +417,9 @@ class PersonCourse(base_service.BaseService):
                         {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}}}
                     ], {allowDiskUse: true})
                     '''
+                    '''
                     utils.log("{logs completed}")
+                    '''
                     # Set cf_item nregistered_students, nviewed_students, nexplored_students, ncertified_students
                     nregistered_students = sum(pc_item.registered for pc_item in pc_dict.values())
                     nviewed_students = sum(pc_item.viewed for pc_item in pc_dict.values())
