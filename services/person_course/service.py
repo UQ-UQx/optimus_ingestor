@@ -85,365 +85,367 @@ class PersonCourse(base_service.BaseService):
             print self.courses.items()
             for course_id, course in self.courses.items():
                 print "running", course_id
-                if (course_id not in ['ielts_x_3T2015']):
-                    # Get chapters from course info
-                    json_file = course['dbname'].replace("_", "-") + '.json'
-                    courseinfo = self.loadcourseinfo(json_file)
-                    utils.log('PersonCourse: ' + str(course_id))
-                    if courseinfo is None:
-                        utils.log("Can not find course info for ." + str(course_id))
-                        continue
+                #if (course_id not in ['ielts_x_3T2015']):
+                # Get chapters from course info
+                json_file = course['dbname'].replace("_", "-") + '.json'
+                courseinfo = self.loadcourseinfo(json_file)
+                utils.log('PersonCourse: ' + str(course_id))
+                if courseinfo is None:
+                    utils.log("Can not find course info for ." + str(course_id))
+                    continue
 
-                    cf_item = CFModel(course_id, course['dbname'], course['mongoname'], course['discussiontable'])
-                    # Set cf_item course_launch_date
-                    bad_start = False
-                    course_launch_date=None
-                    course_close_date=None
-                    if 'start' in courseinfo:
-                        try:
-                            course_launch_time = dateutil.parser.parse(courseinfo['start'].replace('"', ""))
-                            course_launch_date = course_launch_time.date()
-                            cf_item.set_course_launch_date(course_launch_date)
-                        except Exception:
-                            print "ERROR: BAD COURSE CODE START DATE"
-                            print courseinfo['start']
-                            print type(courseinfo['start'])
-                            bad_start = True
-                    else:
-                        utils.log("Course not started for " + course_id)
-                        continue
-                    if bad_start:
-                        continue
-                    # Set cf_item course_close_date
-                    if 'end' in courseinfo:
-                        try:
-                            course_close_time = dateutil.parser.parse(courseinfo['end'])
-                            course_close_date = course_close_time.date()
-                            cf_item.set_course_close_date(course_close_date)
-                        except ValueError:
-                            pass
-                    # Set cf_item course_length
-                    if course_launch_date and course_close_date:
-                        date_delta = course_close_date - course_launch_date
-                        cf_item.set_course_length(math.ceil(date_delta.days/7.0))
-
-                    # Set cf_item nchapters
-                    chapters = []
-                    chapters = self.get_chapter(courseinfo, chapters)
-                    nchapters = len(chapters)
-                    cf_item.set_nchapters(nchapters)
-                    half_chapters = math.ceil(float(nchapters) / 2)
-
-                    # Set cf_item nvideos, nhtmls, nassessments, nsummative_assessments, nformative_assessments, nincontent_discussions, nactivities
-                    content = self.analysis_chapters(chapters)
-                    cf_item.set_nvideos(content['nvideos'])
-                    cf_item.set_nhtmls(content['nhtmls'])
-                    cf_item.set_nassessments(content['nassessments'])
-                    cf_item.set_nsummative_assessments(content['nsummative_assessments'])
-                    cf_item.set_nformative_assessments(content['nformative_assessments'])
-                    cf_item.set_nincontent_discussions(content['nincontent_discussions'])
-                    cf_item.set_nactivities(content['nactivities'])
-
-                    # Create 'pc_table'
-                    self.create_pc_table()
-
-                    # Dict of items of personcourse, key is the user id
-                    pc_dict = {}
-
-                    # Select the database
-                    self.sql_course_conn.select_db(course['dbname'])
-                    course_cursor = self.sql_course_conn.cursor()
-
-                    # course_id for PCModel
-                    pc_course_id = course['mongoname']
-
-                    utils.log("LOADING COURSE {" + pc_course_id + "}")
-
-                    # find all user_id
-                    utils.log("{auth_user}")
-                    query = "SELECT id, is_staff FROM auth_user"
-                    course_cursor.execute(query)
-                    result = course_cursor.fetchall()
-                    for record in result:
-                        pc_dict[record[0]] = PCModel(pc_course_id, record[0])
-                        pc_dict[record[0]].set_roles(record[1])
-
-                    # The list of user_id
-                    user_id_list = pc_dict.keys()
-                    user_id_list.sort()
-                    #print user_id_list
-
-                    # Set LoE, YoB, gender based on the data in {auth_userprofile}
-                    utils.log("{auth_userprofile}")
-                    query = "SELECT user_id, year_of_birth, level_of_education, gender FROM auth_userprofile WHERE user_id in (" + ",".join(["%s"] * len(user_id_list)) + ")"
-                    query = query % tuple(user_id_list)
-                    course_cursor.execute(query)
-                    result = course_cursor.fetchall()
-                    for record in result:
-                        user_id = int(record[0])
-                        pc_dict[user_id].set_YoB(record[1])
-                        pc_dict[user_id].set_LoE(record[2])
-                        pc_dict[user_id].set_gender(record[3])
-
-                    # Set certified based on the data in {certificates_generatedcertificate}
-                    utils.log("{certificates_generatedcertificate}")
-                    query = "SELECT user_id, grade, status FROM certificates_generatedcertificate WHERE user_id in (" + ",".join(["%s"] * len(user_id_list)) + ")"
-                    query = query % tuple(user_id_list)
-                    course_cursor.execute(query)
-                    result = course_cursor.fetchall()
-                    for record in result:
-                        user_id = int(record[0])
-                        pc_dict[user_id].set_grade(float(record[1]))
-                        pc_dict[user_id].set_certified(record[2])
-
-                    # Set start_time based on the data in {student_courseenrollment}
-                    utils.log("{student_courseenrollment}")
-                    query = "SELECT user_id, created, mode FROM student_courseenrollment WHERE user_id in (" + ",".join(["%s"] * len(user_id_list)) + ")"
-                    query = query % tuple(user_id_list)
-                    course_cursor.execute(query)
-                    result = course_cursor.fetchall()
-                    nhonor = 0
-                    naudit = 0
-                    nvertified = 0
-                    registration_open_date = datetime.date.today()
-                    for record in result:
-                        user_id = int(record[0])
-                        start_time = record[1]  # dateutil.parser.parse(record[1])
-                        start_date = start_time.date()
-                        pc_dict[user_id].set_start_time(start_date)
-                        pc_dict[user_id].set_mode(record[2])
-                        if record[2] == 'honor':
-                            nhonor += 1
-                        if record[2] == 'audit':
-                            naudit += 1
-                        if record[2] == 'verified':
-                            nvertified += 1
-                        if start_date < registration_open_date:
-                            registration_open_date = start_date
-                    # Set cf_item nhonor_students, naudit_students, nvertified_students, registration_open_date
-                    cf_item.set_nhonor_students(nhonor)
-                    cf_item.set_naudit_students(naudit)
-                    cf_item.set_nvertified_students(nvertified)
-                    cf_item.set_registration_open_date(registration_open_date)
-
-                    # Set ndays_act and viewed based on the data in {courseware_studentmodule}
+                cf_item = CFModel(course_id, course['dbname'], course['mongoname'], course['discussiontable'])
+                # Set cf_item course_launch_date
+                bad_start = False
+                course_launch_date=None
+                course_close_date=None
+                if 'start' in courseinfo:
                     try:
-                        utils.log("{ndays_act: courseware_studentmodule}")
-                        query = "SELECT student_id, COUNT(DISTINCT TO_DAYS(created)) FROM courseware_studentmodule WHERE student_id is not null GROUP BY student_id"
-                        #query = "SELECT student_id, COUNT(DISTINCT SUBSTRING(created, 1, 10)) FROM courseware_studentmodule WHERE student_id is not null GROUP BY student_id"
-                        course_cursor.execute(query)
-                        result = course_cursor.fetchall()
-                        for record in result:
-                            user_id = int(record[0])
-                            if user_id in pc_dict:
-                                pc_dict[user_id].set_ndays_act(record[1])
-                                if record[1] > 0:
-                                    pc_dict[user_id].set_viewed(1)
-                            else:
-                                utils.log("Student id: %s does not exist in {auth_user}." % user_id)
-                    except self.sql_pc_conn.ProgrammingError:
-                        utils.log("Couldnt find courseware_studentmodule for " + course_id)
-                        continue
-                    except:
-                        utils.log("Unexpected error:" + sys.exc_info()[0])
+                        course_launch_time = dateutil.parser.parse(courseinfo['start'].replace('"', ""))
+                        course_launch_date = course_launch_time.date()
+                        cf_item.set_course_launch_date(course_launch_date)
+                    except Exception:
+                        print "ERROR: BAD COURSE CODE START DATE"
+                        print courseinfo['start']
+                        print type(courseinfo['start'])
+                        bad_start = True
+                else:
+                    utils.log("Course not started for " + course_id)
+                    continue
+                if bad_start:
+                    continue
+                # Set cf_item course_close_date
+                if 'end' in courseinfo:
+                    try:
+                        course_close_time = dateutil.parser.parse(courseinfo['end'])
+                        course_close_date = course_close_time.date()
+                        cf_item.set_course_close_date(course_close_date)
+                    except ValueError:
+                        pass
+                # Set cf_item course_length
+                if course_launch_date and course_close_date:
+                    date_delta = course_close_date - course_launch_date
+                    cf_item.set_course_length(math.ceil(date_delta.days/7.0))
 
-                    # Set attempted problems
-                    utils.log("{attempted_problems: courseware_studentmodule}")
-                    #update query to use full text search on MyISAM table
-                    #query = "SELECT student_id, COUNT(state) FROM courseware_studentmodule WHERE state LIKE '%correct_map%' AND student_id IS NOT NULL GROUP BY student_id"
-                    query = "SELECT student_id, COUNT(state) FROM courseware_studentmodule WHERE MATCH (state) AGAINST ('correct_map') AND student_id IS NOT NULL GROUP BY student_id"
+                # Set cf_item nchapters
+                chapters = []
+                chapters = self.get_chapter(courseinfo, chapters)
+                nchapters = len(chapters)
+                cf_item.set_nchapters(nchapters)
+                half_chapters = math.ceil(float(nchapters) / 2)
+
+                # Set cf_item nvideos, nhtmls, nassessments, nsummative_assessments, nformative_assessments, nincontent_discussions, nactivities
+                content = self.analysis_chapters(chapters)
+                cf_item.set_nvideos(content['nvideos'])
+                cf_item.set_nhtmls(content['nhtmls'])
+                cf_item.set_nassessments(content['nassessments'])
+                cf_item.set_nsummative_assessments(content['nsummative_assessments'])
+                cf_item.set_nformative_assessments(content['nformative_assessments'])
+                cf_item.set_nincontent_discussions(content['nincontent_discussions'])
+                cf_item.set_nactivities(content['nactivities'])
+
+                # Create 'pc_table'
+                self.create_pc_table()
+
+                # Dict of items of personcourse, key is the user id
+                pc_dict = {}
+
+                # Select the database
+                self.sql_course_conn.select_db(course['dbname'])
+                course_cursor = self.sql_course_conn.cursor()
+
+                # course_id for PCModel
+                pc_course_id = course['mongoname']
+
+                utils.log("LOADING COURSE {" + pc_course_id + "}")
+
+                # find all user_id
+                utils.log("{auth_user}")
+                query = "SELECT id, is_staff FROM auth_user"
+                course_cursor.execute(query)
+                result = course_cursor.fetchall()
+                for record in result:
+                    pc_dict[record[0]] = PCModel(pc_course_id, record[0])
+                    pc_dict[record[0]].set_roles(record[1])
+
+                # The list of user_id
+                user_id_list = pc_dict.keys()
+                user_id_list.sort()
+                #print user_id_list
+
+                # Set LoE, YoB, gender based on the data in {auth_userprofile}
+                utils.log("{auth_userprofile}")
+                query = "SELECT user_id, year_of_birth, level_of_education, gender FROM auth_userprofile WHERE user_id in (" + ",".join(["%s"] * len(user_id_list)) + ")"
+                query = query % tuple(user_id_list)
+                course_cursor.execute(query)
+                result = course_cursor.fetchall()
+                for record in result:
+                    user_id = int(record[0])
+                    pc_dict[user_id].set_YoB(record[1])
+                    pc_dict[user_id].set_LoE(record[2])
+                    pc_dict[user_id].set_gender(record[3])
+
+                # Set certified based on the data in {certificates_generatedcertificate}
+                utils.log("{certificates_generatedcertificate}")
+                query = "SELECT user_id, grade, status FROM certificates_generatedcertificate WHERE user_id in (" + ",".join(["%s"] * len(user_id_list)) + ")"
+                query = query % tuple(user_id_list)
+                course_cursor.execute(query)
+                result = course_cursor.fetchall()
+                for record in result:
+                    user_id = int(record[0])
+                    pc_dict[user_id].set_grade(float(record[1]))
+                    pc_dict[user_id].set_certified(record[2])
+
+                # Set start_time based on the data in {student_courseenrollment}
+                utils.log("{student_courseenrollment}")
+                query = "SELECT user_id, created, mode FROM student_courseenrollment WHERE user_id in (" + ",".join(["%s"] * len(user_id_list)) + ")"
+                query = query % tuple(user_id_list)
+                course_cursor.execute(query)
+                result = course_cursor.fetchall()
+                nhonor = 0
+                naudit = 0
+                nvertified = 0
+                registration_open_date = datetime.date.today()
+                for record in result:
+                    user_id = int(record[0])
+                    start_time = record[1]  # dateutil.parser.parse(record[1])
+                    start_date = start_time.date()
+                    pc_dict[user_id].set_start_time(start_date)
+                    pc_dict[user_id].set_mode(record[2])
+                    if record[2] == 'honor':
+                        nhonor += 1
+                    if record[2] == 'audit':
+                        naudit += 1
+                    if record[2] == 'verified':
+                        nvertified += 1
+                    if start_date < registration_open_date:
+                        registration_open_date = start_date
+                # Set cf_item nhonor_students, naudit_students, nvertified_students, registration_open_date
+                cf_item.set_nhonor_students(nhonor)
+                cf_item.set_naudit_students(naudit)
+                cf_item.set_nvertified_students(nvertified)
+                cf_item.set_registration_open_date(registration_open_date)
+
+                # Set ndays_act and viewed based on the data in {courseware_studentmodule}
+                try:
+                    utils.log("{ndays_act: courseware_studentmodule}")
+                    query = "SELECT student_id, COUNT(DISTINCT TO_DAYS(created)) FROM courseware_studentmodule WHERE student_id is not null GROUP BY student_id"
+                    #query = "SELECT student_id, COUNT(DISTINCT SUBSTRING(created, 1, 10)) FROM courseware_studentmodule WHERE student_id is not null GROUP BY student_id"
                     course_cursor.execute(query)
                     result = course_cursor.fetchall()
                     for record in result:
                         user_id = int(record[0])
                         if user_id in pc_dict:
-                            pc_dict[user_id].set_attempted_problems(record[1])
+                            pc_dict[user_id].set_ndays_act(record[1])
+                            if record[1] > 0:
+                                pc_dict[user_id].set_viewed(1)
                         else:
                             utils.log("Student id: %s does not exist in {auth_user}." % user_id)
+                except self.sql_pc_conn.ProgrammingError:
+                    utils.log("Couldnt find courseware_studentmodule for " + course_id)
+                    continue
+                except:
+                    utils.log("Unexpected error:" + sys.exc_info()[0])
 
-                    # Set nplay_video based on the data in {courseware_studentmodule}
-                    utils.log("{nplay_video: courseware_studentmodule}")
-                    query = "SELECT student_id, COUNT(*) FROM courseware_studentmodule WHERE module_type = 'video' AND student_id IS NOT NULL GROUP BY student_id"
-                    course_cursor.execute(query)
-                    result = course_cursor.fetchall()
-                    for record in result:
-                        user_id = int(record[0])
+                # Set attempted problems
+                utils.log("{attempted_problems: courseware_studentmodule}")
+                #update query to use full text search on MyISAM table
+                #query = "SELECT student_id, COUNT(state) FROM courseware_studentmodule WHERE state LIKE '%correct_map%' AND student_id IS NOT NULL GROUP BY student_id"
+                query = "SELECT student_id, COUNT(state) FROM courseware_studentmodule WHERE MATCH (state) AGAINST ('correct_map') AND student_id IS NOT NULL GROUP BY student_id"
+                course_cursor.execute(query)
+                result = course_cursor.fetchall()
+                for record in result:
+                    user_id = int(record[0])
+                    if user_id in pc_dict:
+                        pc_dict[user_id].set_attempted_problems(record[1])
+                    else:
+                        utils.log("Student id: %s does not exist in {auth_user}." % user_id)
+
+                # Set nplay_video based on the data in {courseware_studentmodule}
+                utils.log("{nplay_video: courseware_studentmodule}")
+                query = "SELECT student_id, COUNT(*) FROM courseware_studentmodule WHERE module_type = 'video' AND student_id IS NOT NULL GROUP BY student_id"
+                course_cursor.execute(query)
+                result = course_cursor.fetchall()
+                for record in result:
+                    user_id = int(record[0])
+                    if user_id in pc_dict:
+                        pc_dict[user_id].set_nplay_video(record[1])
+
+                # Set nchapters and explored based on the data in {courseware_studentmodule}
+                utils.log("{nchapters: courseware_studentmodule}")
+                query = "SELECT student_id, COUNT(DISTINCT module_id) FROM courseware_studentmodule WHERE module_type = 'chapter' AND student_id IS NOT NULL GROUP BY student_id"
+                course_cursor.execute(query)
+                result = course_cursor.fetchall()
+                for record in result:
+                    user_id = int(record[0])
+                    if user_id in pc_dict:
+                        pc_dict[user_id].set_nchapters(record[1])
+                        if record[1] >= half_chapters:
+                            pc_dict[user_id].set_explored(1)
+                        else:
+                            pc_dict[user_id].set_explored(0)
+
+                # Mongo
+                # Discussion forum
+                utils.log("{discussion_forum}")
+                self.mongo_dbname = "discussion_forum"
+                self.mongo_collectionname = course['discussiontable']
+                self.connect_to_mongo(self.mongo_dbname, self.mongo_collectionname)
+
+                user_posts = self.mongo_collection.aggregate([
+                    #{"$match": {"author_id": {"$in": user_id_list}}},
+                    {"$group": {"_id": "$author_id", "postSum": {"$sum": 1}}}
+                ])    # ['result']
+
+                for item in user_posts:
+                    if "_id" in item and item["_id"] != None:
+                        user_id = int(item["_id"])
                         if user_id in pc_dict:
-                            pc_dict[user_id].set_nplay_video(record[1])
-
-                    # Set nchapters and explored based on the data in {courseware_studentmodule}
-                    utils.log("{nchapters: courseware_studentmodule}")
-                    query = "SELECT student_id, COUNT(DISTINCT module_id) FROM courseware_studentmodule WHERE module_type = 'chapter' AND student_id IS NOT NULL GROUP BY student_id"
-                    course_cursor.execute(query)
-                    result = course_cursor.fetchall()
-                    for record in result:
-                        user_id = int(record[0])
-                        if user_id in pc_dict:
-                            pc_dict[user_id].set_nchapters(record[1])
-                            if record[1] >= half_chapters:
-                                pc_dict[user_id].set_explored(1)
-                            else:
-                                pc_dict[user_id].set_explored(0)
-
-                    # Mongo
-                    # Discussion forum
-                    utils.log("{discussion_forum}")
-                    self.mongo_dbname = "discussion_forum"
-                    self.mongo_collectionname = course['discussiontable']
-                    self.connect_to_mongo(self.mongo_dbname, self.mongo_collectionname)
-                    '''
-                    user_posts = self.mongo_collection.aggregate([
-                        #{"$match": {"author_id": {"$in": user_id_list}}},
-                        {"$group": {"_id": "$author_id", "postSum": {"$sum": 1}}}
-                    ])    # ['result']
-
-                    for item in user_posts:
-                        if "_id" in item and item["_id"] != None:
-                            user_id = int(item["_id"])
-                            if user_id in pc_dict:
-                                pc_dict[user_id].set_nforum_posts(item['postSum'])
-                            else:
-                                utils.log("Author id: %s does not exist in {auth_user}." % user_id)
+                            pc_dict[user_id].set_nforum_posts(item['postSum'])
                         else:
                             utils.log("Author id: %s does not exist in {auth_user}." % user_id)
-                    '''
+                    else:
+                        utils.log("Author id: %s does not exist in {auth_user}." % user_id)
 
-                    # Tracking logs
-                    utils.log("{logs}")
-                    self.mongo_dbname = "logs"
-                    self.mongo_collectionname = "clickstream"
-                    #self.mongo_collectionname = "clickstream_hypers_301x_sample"
-                    self.connect_to_mongo(self.mongo_dbname, self.mongo_collectionname)
 
-                    # Simplify Mongo Aggregate Queries
-                    # split up finding the country codes and the total events and simplify by removing sort and the time of the last event
-                    '''
-                    user_events = self.mongo_collection.aggregate([
-                        {"$match": {"context.course_id": pc_course_id}},
-                        {"$sort": {"time": 1}},
-                        {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
-                    ], allowDiskUse=True)  # ['result']
-                    '''
-                    # Trying if looping is going to be fasters than a MongoDB query until Mongo is sharded
-                    '''
-                    user_events = self.mongo_collection.find( { "context.course_id": pc_course_id }, { "context.user_id": 1, "country": 1 }, allowDiskUse=True)
+                # Tracking logs
+                utils.log("{logs}")
+                self.mongo_dbname = "logs"
+                self.mongo_collectionname = "clickstream"
+                #self.mongo_collectionname = "clickstream_hypers_301x_sample"
+                self.connect_to_mongo(self.mongo_dbname, self.mongo_collectionname)
 
-                    student_eventcount = {}
-                    student_countryset = {}
+                # Simplify Mongo Aggregate Queries
+                # split up finding the country codes and the total events and simplify by removing sort and the time of the last event
+                '''
+                user_events = self.mongo_collection.aggregate([
+                    {"$match": {"context.course_id": pc_course_id}},
+                    {"$sort": {"time": 1}},
+                    {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
+                ], allowDiskUse=True)  # ['result']
+                '''
+                # Trying if looping is going to be fasters than a MongoDB query until Mongo is sharded
+                '''
+                user_events = self.mongo_collection.find( { "context.course_id": pc_course_id }, { "context.user_id": 1, "country": 1 }, allowDiskUse=True)
 
-                    utils.log("{logs event counts cursor returned}")
-                    event_count = 0
-                    if 'result' in user_events:
-                        user_events=user_events['result']
-                    for item in user_events:
-                        user_id = item["context.user_id"]
-                        if user_id in student_eventcount:
-                            student_eventcount[user_id] = student_eventcount[user_id] + 1
+                student_eventcount = {}
+                student_countryset = {}
+
+                utils.log("{logs event counts cursor returned}")
+                event_count = 0
+                if 'result' in user_events:
+                    user_events=user_events['result']
+                for item in user_events:
+                    user_id = item["context.user_id"]
+                    if user_id in student_eventcount:
+                        student_eventcount[user_id] = student_eventcount[user_id] + 1
+                    else:
+                        student_eventcount[user_id] = 0
+                    if user_id in student_countryset:
+                        student_countryset[user_id] = student_countryset.add(item["country"])
+                    else:
+                        student_eventcount[user_id] = Set()
+                    if (event_count % 100000 == 0):
+                        print "event count: " + str(event_count)
+                for u in student_eventcount: #
+                    event_count = event_count + 1
+                    try:
+                        user_id = u
+                        if user_id in pc_dict:
+                            pc_dict[user_id].set_nevents(student_eventcount[user_id])
+                            countryset_as_string = ','.join("'{0}'".format(x) for x in student_countryset[user_id])
+                            pc_dict[user_id].set_final_cc_cname("[" + countryset_as_string + "]")
                         else:
-                            student_eventcount[user_id] = 0
-                        if user_id in student_countryset:
-                            student_countryset[user_id] = student_countryset.add(item["country"])
+                            utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
+                    except TypeError as err:
+                        print "error %s item %s" % (err.message, item)
+
+                '''
+
+                user_events = self.mongo_collection.aggregate([
+                    {"$project" : { "context.user_id": 1, "context.course_id" : 1}},
+                    {"$match": {"context.course_id": pc_course_id}},
+                    {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}}}
+                ], allowDiskUse=True)  # ['result']
+                utils.log("{logs event counts cursor returned}")
+                if 'result' in user_events:
+                    user_events=user_events['result']
+                for item in user_events:
+                    try:
+                        user_id = item["_id"]
+                        if user_id in pc_dict:
+                            #pc_dict[user_id].set_last_event(item["last_event"])
+                            pc_dict[user_id].set_nevents(item["eventSum"])
+                            #pc_dict[user_id].set_final_cc_cname(item["countrySet"])
                         else:
-                            student_eventcount[user_id] = Set()
-                        if (event_count % 100000 == 0):
-                            print "event count: " + str(event_count)
-                    for u in student_eventcount: #
-                        event_count = event_count + 1
-                        try:
-                            user_id = u
-                            if user_id in pc_dict:
-                                pc_dict[user_id].set_nevents(student_eventcount[user_id])
-                                countryset_as_string = ','.join("'{0}'".format(x) for x in student_countryset[user_id])
-                                pc_dict[user_id].set_final_cc_cname("[" + countryset_as_string + "]")
-                            else:
-                                utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
-                        except TypeError as err:
-                            print "error %s item %s" % (err.message, item)
+                            utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
+                    except TypeError as err:
+                        print "error %s item %s" % (err.message, item)
 
-                    '''
-                    '''
-                    user_events = self.mongo_collection.aggregate([
-                        {"$match": {"context.course_id": pc_course_id}},
-                        {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}}}
-                    ], allowDiskUse=True)  # ['result']
-                    utils.log("{logs event counts cursor returned}")
-                    if 'result' in user_events:
-                        user_events=user_events['result']
-                    for item in user_events:
-                        try:
-                            user_id = item["_id"]
-                            if user_id in pc_dict:
-                                #pc_dict[user_id].set_last_event(item["last_event"])
-                                pc_dict[user_id].set_nevents(item["eventSum"])
-                                #pc_dict[user_id].set_final_cc_cname(item["countrySet"])
-                            else:
-                                utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
-                        except TypeError as err:
-                            print "error %s item %s" % (err.message, item)
+                utils.log("{logs country sets started}")
+                user_countries = self.mongo_collection.aggregate([
+                    {"$project" : { "context.user_id": 1, "context.course_id" : 1 , "country" : 1 }},
+                    {"$match": {"context.course_id": pc_course_id}},
+                    {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}}}
+                ], allowDiskUse=True)  # ['result']
+                utils.log("{logs country sets cursor returned}")
+                if 'result' in user_countries:
+                    user_countries=user_countries['result']
+                for item in user_countries:
+                    try:
+                        user_id = item["_id"]
+                        if user_id in pc_dict:
+                            #pc_dict[user_id].set_last_event(item["last_event"])
+                            #pc_dict[user_id].set_nevents(item["eventSum"])
+                            pc_dict[user_id].set_final_cc_cname(item["countrySet"])
+                        else:
+                            utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
+                    except TypeError as err:
+                        print "error %s item %s" % (err.message, item)
 
-                    utils.log("{logs country sets started}")
-                    user_countries = self.mongo_collection.aggregate([
-                        {"$match": {"context.course_id": pc_course_id}},
-                        {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}}}
-                    ], allowDiskUse=True)  # ['result']
-                    utils.log("{logs country sets cursor returned}")
-                    if 'result' in user_countries:
-                        user_countries=user_countries['result']
-                    for item in user_countries:
-                        try:
-                            user_id = item["_id"]
-                            if user_id in pc_dict:
-                                #pc_dict[user_id].set_last_event(item["last_event"])
-                                #pc_dict[user_id].set_nevents(item["eventSum"])
-                                pc_dict[user_id].set_final_cc_cname(item["countrySet"])
-                            else:
-                                utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
-                        except TypeError as err:
-                            print "error %s item %s" % (err.message, item)
-                    '''
-                    '''
-                    db.clickstream.aggregate([
-                        {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
-                        {"$sort": {"time": 1}},
-                        {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}, "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
-                    ], {allowDiskUse: true})
+                '''
+                db.clickstream.aggregate([
+                    {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
+                    {"$sort": {"time": 1}},
+                    {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}, "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
+                ], {allowDiskUse: true})
 
-                    db.clickstream.aggregate([
-                        {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
-                        {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}}}
-                    ], {allowDiskUse: true})
+                db.clickstream.aggregate([
+                    {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
+                    {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}}}
+                ], {allowDiskUse: true})
 
-                    db.clickstream.aggregate([
-                        {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
-                        {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}}}
-                    ], {allowDiskUse: true})
-                    '''
-                    '''
-                    utils.log("{logs completed}")
-                    '''
-                    # Set cf_item nregistered_students, nviewed_students, nexplored_students, ncertified_students
-                    nregistered_students = sum(pc_item.registered for pc_item in pc_dict.values())
-                    nviewed_students = sum(pc_item.viewed for pc_item in pc_dict.values())
-                    nexplored_students = sum(pc_item.explored for pc_item in pc_dict.values())
-                    ncertified_students = sum(pc_item.certified for pc_item in pc_dict.values())
-                    cf_item.set_nregistered_students(nregistered_students)
-                    cf_item.set_nviewed_students(nviewed_students)
-                    cf_item.set_nexplored_students(nexplored_students)
-                    cf_item.set_ncertified_students(ncertified_students)
+                db.clickstream.aggregate([
+                    {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
+                    {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}}}
+                ], {allowDiskUse: true})
+                '''
 
-                    pc_cursor = self.sql_pc_conn.cursor()
-                    #print cf_item
-                    cf_item.save2db(pc_cursor, self.cf_table)
+                utils.log("{logs completed}")
 
-                    # Till now, data preparation for pc_tablex has been finished.
-                    # Check consistent then write them into the database.
-                    utils.log("save to {personcourse}")
-                    tablename = self.pc_table + "_" + course_id
-                    for user_id, user_data in pc_dict.items():
-                        pc_dict[user_id].set_inconsistent_flag()
-                        pc_dict[user_id].save2db(pc_cursor, tablename)
+                # Set cf_item nregistered_students, nviewed_students, nexplored_students, ncertified_students
+                nregistered_students = sum(pc_item.registered for pc_item in pc_dict.values())
+                nviewed_students = sum(pc_item.viewed for pc_item in pc_dict.values())
+                nexplored_students = sum(pc_item.explored for pc_item in pc_dict.values())
+                ncertified_students = sum(pc_item.certified for pc_item in pc_dict.values())
+                cf_item.set_nregistered_students(nregistered_students)
+                cf_item.set_nviewed_students(nviewed_students)
+                cf_item.set_nexplored_students(nexplored_students)
+                cf_item.set_ncertified_students(ncertified_students)
 
-                    self.sql_pc_conn.commit()
+                pc_cursor = self.sql_pc_conn.cursor()
+                #print cf_item
+                cf_item.save2db(pc_cursor, self.cf_table)
+
+                # Till now, data preparation for pc_tablex has been finished.
+                # Check consistent then write them into the database.
+                utils.log("save to {personcourse}")
+                tablename = self.pc_table + "_" + course_id
+                for user_id, user_data in pc_dict.items():
+                    pc_dict[user_id].set_inconsistent_flag()
+                    pc_dict[user_id].save2db(pc_cursor, tablename)
+
+                self.sql_pc_conn.commit()
 
             self.datadump2csv()
             self.save_run_ingest()
