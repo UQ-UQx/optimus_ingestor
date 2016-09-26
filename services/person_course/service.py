@@ -354,6 +354,7 @@ class PersonCourse(base_service.BaseService):
                         student_countryset[user_id] = student_countryset.add(item["country"])
                     else:
                         student_eventcount[user_id] = Set()
+                    event_count = event_count + 1
                     if (event_count % 100000 == 0):
                         print "event count: " + str(event_count)
                 for u in student_eventcount: #
