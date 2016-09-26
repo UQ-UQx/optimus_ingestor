@@ -334,7 +334,7 @@ class PersonCourse(base_service.BaseService):
                 ], allowDiskUse=True)  # ['result']
                 '''
                 # Trying if looping is going to be fasters than a MongoDB query until Mongo is sharded
-                '''
+
                 user_events = self.mongo_collection.find( { "context.course_id": pc_course_id }, { "context.user_id": 1, "country": 1 }, allowDiskUse=True)
 
                 student_eventcount = {}
@@ -369,8 +369,8 @@ class PersonCourse(base_service.BaseService):
                     except TypeError as err:
                         print "error %s item %s" % (err.message, item)
 
-                '''
 
+                '''
                 user_events = self.mongo_collection.aggregate([
                     {"$project" : { "context.user_id": 1, "context.course_id" : 1}},
                     {"$match": {"context.course_id": pc_course_id}},
@@ -413,6 +413,9 @@ class PersonCourse(base_service.BaseService):
                         print "error %s item %s" % (err.message, item)
 
                 '''
+                '''
+
+                db.clickstream.find( { "context.course_id": 'UQx/Crime101x/3T2014' }, { "context.user_id": 1, "country": 1 })
                 db.clickstream.aggregate([
                     {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
                     {"$sort": {"time": 1}},
