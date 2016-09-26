@@ -83,7 +83,9 @@ class PersonCourse(base_service.BaseService):
         print self.finished_ingestion("TimeFinder")
         print self.finished_ingestion("IpToCountry")
         print self.finished_ingestion("DatabaseState")
-        if self.finished_ingestion("TimeFinder") and last_run < last_timefinder and self.finished_ingestion("IpToCountry") and last_run < last_iptocountry and self.finished_ingestion("DatabaseState") and last_run < last_dbstate:
+
+        #if self.finished_ingestion("TimeFinder") and last_run < last_timefinder and self.finished_ingestion("IpToCountry") and last_run < last_iptocountry and self.finished_ingestion("DatabaseState") and last_run < last_dbstate:
+        if self.finished_ingestion("TimeFinder") and self.finished_ingestion("IpToCountry") and self.finished_ingestion("DatabaseState"):
             # Create 'cf_table'
             self.create_cf_table()
             # Clean 'pc_table'
