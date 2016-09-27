@@ -193,7 +193,8 @@ class PersonCourse(base_service.BaseService):
                     pc_dict[user_id].set_YoB(record[1])
                     pc_dict[user_id].set_LoE(record[2])
                     pc_dict[user_id].set_gender(record[3])
-                    pc_dict[user_id].set_final_cc_cname('["' + record[4] + '"]') # temp speed up improvement until Mongo can be sharded or replicated
+                    if record[4] not None:
+                        pc_dict[user_id].set_final_cc_cname('["' + record[4] + '"]') # temp speed up improvement until Mongo can be sharded or replicated
 
                 # Set certified based on the data in {certificates_generatedcertificate}
                 utils.log("{certificates_generatedcertificate}")
