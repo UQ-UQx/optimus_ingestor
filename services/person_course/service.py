@@ -184,7 +184,7 @@ class PersonCourse(base_service.BaseService):
 
                 # Set LoE, YoB, gender based on the data in {auth_userprofile}
                 utils.log("{auth_userprofile}")
-                query = "SELECT user_id, year_of_birth, level_of_education, gender FROM auth_userprofile WHERE user_id in (" + ",".join(["%s"] * len(user_id_list)) + ")"
+                query = "SELECT user_id, year_of_birth, level_of_education, gender, country FROM auth_userprofile WHERE user_id in (" + ",".join(["%s"] * len(user_id_list)) + ")"
                 query = query % tuple(user_id_list)
                 course_cursor.execute(query)
                 result = course_cursor.fetchall()
@@ -193,6 +193,7 @@ class PersonCourse(base_service.BaseService):
                     pc_dict[user_id].set_YoB(record[1])
                     pc_dict[user_id].set_LoE(record[2])
                     pc_dict[user_id].set_gender(record[3])
+                    pc_dict[user_id].set_final_cc_cname('["' + record[5] + '"]') # temp speed up improvement until Mongo can be sharded or replicated
 
                 # Set certified based on the data in {certificates_generatedcertificate}
                 utils.log("{certificates_generatedcertificate}")
@@ -334,7 +335,7 @@ class PersonCourse(base_service.BaseService):
                 ], allowDiskUse=True)  # ['result']
                 '''
                 # Trying if looping is going to be fasters than a MongoDB query until Mongo is sharded
-
+                '''
                 user_events = self.mongo_collection.find( { "context.course_id": pc_course_id }, { "context.user_id": 1, "country": 1 }, allowDiskUse=True)
 
                 student_eventcount = {}
@@ -370,7 +371,7 @@ class PersonCourse(base_service.BaseService):
                     except TypeError as err:
                         print "error %s item %s" % (err.message, item)
 
-
+                '''
                 '''
                 user_events = self.mongo_collection.aggregate([
                     {"$project" : { "context.user_id": 1, "context.course_id" : 1}},
@@ -432,9 +433,10 @@ class PersonCourse(base_service.BaseService):
                     {"$match": {"context.course_id": 'UQx/Crime101x/3T2014'}},
                     {"$group": {"_id": "$context.user_id", "countrySet": {"$addToSet": "$country"}}}
                 ], {allowDiskUse: true})
-                '''
+
 
                 utils.log("{logs completed}")
+                '''
 
                 # Set cf_item nregistered_students, nviewed_students, nexplored_students, ncertified_students
                 nregistered_students = sum(pc_item.registered for pc_item in pc_dict.values())
