@@ -305,6 +305,7 @@ class PersonCourse(base_service.BaseService):
 
                 user_posts = self.mongo_collection.aggregate([
                     #{"$match": {"author_id": {"$in": user_id_list}}},
+                    {"$project" : { "author_id": 1}},
                     {"$group": {"_id": "$author_id", "postSum": {"$sum": 1}}}
                 ])    # ['result']
 
@@ -318,7 +319,7 @@ class PersonCourse(base_service.BaseService):
                     else:
                         utils.log("Author id: %s does not exist in {auth_user}." % user_id)
 
-
+                '''
                 # Tracking logs
                 utils.log("{logs}")
                 self.mongo_dbname = "logs"
@@ -328,7 +329,7 @@ class PersonCourse(base_service.BaseService):
 
                 # Simplify Mongo Aggregate Queries
                 # split up finding the country codes and the total events and simplify by removing sort and the time of the last event
-                '''
+
                 user_events = self.mongo_collection.aggregate([
                     {"$match": {"context.course_id": pc_course_id}},
                     {"$sort": {"time": 1}},
