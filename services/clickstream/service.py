@@ -28,7 +28,7 @@ class Clickstream(base_service.BaseService):
         self.sleep_time = 60
 
         self.mongo_dbname = "logs"
-        self.mongo_collectionname = "clickstream"
+        self.mongo_collectionname = "clickstream_delta"
 
         self.initialize()
 
@@ -64,13 +64,13 @@ def ensure_mongo_indexes():
     :return: None
     """
     utils.log("Setting index for countries")
-    cmd = "mongo  --quiet " + config.MONGO_HOST + "/logs --eval \"db.clickstream.ensureIndex({country:1})\""
+    cmd = "mongo  --quiet " + config.MONGO_HOST + "/logs --eval \"db.clickstream_delta.ensureIndex({country:1})\""
     os.system(cmd)
     utils.log("Setting index for event-course")
-    cmd = "mongo  --quiet " + config.MONGO_HOST + "/logs --eval \"db.clickstream.ensureIndex( {event_type: 1,'context.course_id': 1} )\""
+    cmd = "mongo  --quiet " + config.MONGO_HOST + "/logs --eval \"db.clickstream_delta.ensureIndex( {event_type: 1,'context.course_id': 1} )\""
     os.system(cmd)
     utils.log("Setting index for course")
-    cmd = "mongo  --quiet " + config.MONGO_HOST + "/logs --eval \"db.clickstream.ensureIndex( {'context.course_id': 1} )\""
+    cmd = "mongo  --quiet " + config.MONGO_HOST + "/logs --eval \"db.clickstream_delta.ensureIndex( {'context.course_id': 1} )\""
     os.system(cmd)
 
 

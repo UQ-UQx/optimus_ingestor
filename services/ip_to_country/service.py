@@ -66,7 +66,7 @@ class IPToCountry(base_service.BaseService):
                     self.mongo_db = self.mongo_client[self.mongo_dbname]
 
             if self.mongo_db:
-                for collection in self.mongo_db.collection_names():
+                for collection in ['clickstream_delta']: #self.mongo_db.collection_names():
                     mongo_collection = self.mongo_db[collection]
                     if mongo_collection:
                         utils.log("CHECKING COUNTRY")
