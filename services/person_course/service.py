@@ -358,6 +358,7 @@ class PersonCourse(base_service.BaseService):
                 for item in user_events:
                     try:
                         user_id = item["_id"]
+                        print item["countrySet"]
                         if user_id in pc_dict:
                             eventSum = 0
                             countrySet = Set()
@@ -365,14 +366,16 @@ class PersonCourse(base_service.BaseService):
                                 curr_user_aggregates = user_aggregate_dict[user_id]
                                 eventSum = eventSum + curr_user_aggregates['eventSum']
                                 countrySet = curr_user_aggregates['countrySet']
-                                countrySet.add(item["country"])
+                                countrySet.update(Set(item["countrySet"].split(",")))
                                 user_aggregate_dict[user_id]['eventSum'] = eventSum
                                 user_aggregate_dict[user_id]['countrySet'] = countrySet
                             else:
+                                eventSum = eventSum + curr_user_aggregates['eventSum']
+                                countrySet.update(Set(my_string.split(",")))
                                 user_aggregate_dict[user_id] = {'eventSum':eventSum, 'countrySet':countrySet}
                             pc_dict[user_id].set_nevents(eventSum)
-                            countryset_as_string = ','.join("'{0}'".format(x) for x in countrySet)
-                            pc_dict[user_id].set_final_cc_cname("[" + countryset_as_string + "]")
+                            countryset_as_string = ','.join(str(s) for s in countrySet)
+                            pc_dict[user_id].set_final_cc_cname(countryset_as_string)
                             #pc_dict[user_id].set_last_event(item["last_event"])
                             #pc_dict[user_id].set_nevents(item["eventSum"])
                             #pc_dict[user_id].set_final_cc_cname(item["countrySet"])
