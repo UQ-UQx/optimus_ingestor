@@ -358,20 +358,17 @@ class PersonCourse(base_service.BaseService):
                 for item in user_events:
                     try:
                         user_id = item["_id"]
-                        print item["countrySet"]
+                        #print item["countrySet"]
                         if user_id in pc_dict:
-                            eventSum = 0
-                            countrySet = Set()
+                            eventSum = item["eventSum"]
+                            countrySet = Set(item["countrySet"])
                             if user_id in user_aggregate_dict:
                                 curr_user_aggregates = user_aggregate_dict[user_id]
                                 eventSum = eventSum + curr_user_aggregates['eventSum']
-                                countrySet = curr_user_aggregates['countrySet']
-                                countrySet.update(Set(item["countrySet"].split(",")))
+                                countrySet.update(curr_user_aggregates['countrySet'])
                                 user_aggregate_dict[user_id]['eventSum'] = eventSum
                                 user_aggregate_dict[user_id]['countrySet'] = countrySet
                             else:
-                                eventSum = eventSum + curr_user_aggregates['eventSum']
-                                countrySet.update(Set(my_string.split(",")))
                                 user_aggregate_dict[user_id] = {'eventSum':eventSum, 'countrySet':countrySet}
                             pc_dict[user_id].set_nevents(eventSum)
                             countryset_as_string = ','.join(str(s) for s in countrySet)
