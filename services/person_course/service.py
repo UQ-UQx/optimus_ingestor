@@ -342,7 +342,7 @@ class PersonCourse(base_service.BaseService):
 
                 user_aggregate_dict = {}
                 # Load user_aggregate_dict if file exists for the course
-                user_aggregate_dict_file = "/mnt/volume/aggregates/%s.pickle" % (pc_course_id) #todo add path to config
+                user_aggregate_dict_file = "/mnt/volume/aggregates/%s.pickle" % (course_id) #todo add path to config
                 if os.path.isfile(user_aggregate_dict_file):
                     with open(user_aggregate_dict_file, 'rb') as handle:
                         user_aggregate_dict = pickle.load(handle)
