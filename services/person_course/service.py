@@ -19,6 +19,8 @@ import csv
 from pymongo import MongoClient
 import sys
 from sets import Set
+import pickle
+import os.path
 
 class PersonCourse(base_service.BaseService):
     """
@@ -319,23 +321,70 @@ class PersonCourse(base_service.BaseService):
                     else:
                         utils.log("Author id: %s does not exist in {auth_user}." % user_id)
 
-                '''
+
                 # Tracking logs
                 utils.log("{logs}")
                 self.mongo_dbname = "logs"
-                self.mongo_collectionname = "clickstream"
+                #self.mongo_collectionname = "clickstream"
+                self.mongo_collectionname = "clickstream_delta"
                 #self.mongo_collectionname = "clickstream_hypers_301x_sample"
                 self.connect_to_mongo(self.mongo_dbname, self.mongo_collectionname)
 
                 # Simplify Mongo Aggregate Queries
                 # split up finding the country codes and the total events and simplify by removing sort and the time of the last event
-
+                '''
                 user_events = self.mongo_collection.aggregate([
                     {"$match": {"context.course_id": pc_course_id}},
                     {"$sort": {"time": 1}},
                     {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
                 ], allowDiskUse=True)  # ['result']
                 '''
+
+                user_aggregate_dict = {}
+                # Load user_aggregate_dict if file exists for the course
+                user_aggregate_dict_file = "/mnt/volume/aggregates/%s.pickle" % (pc_course_id) #todo add path to config
+                if os.path.isfile(user_aggregate_dict_file):
+                    with open(user_aggregate_dict_file, 'rb') as handle:
+                        user_aggregate_dict = pickle.load(handle)
+
+                user_events = self.mongo_collection.aggregate([
+                    {"$project" : { "context.user_id": 1, "context.course_id" : 1, "country" : 1 }},
+                    {"$match": {"context.course_id": pc_course_id}},
+                    {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}, "countrySet": {"$addToSet": "$country"}}}
+                ], allowDiskUse=True)  # ['result']
+
+                if 'result' in user_events:
+                    user_events = user_events['result']
+                for item in user_events:
+                    try:
+                        user_id = item["_id"]
+                        if user_id in pc_dict:
+                            eventSum = 0
+                            countrySet = Set()
+                            if user_id in user_aggregate_dict:
+                                curr_user_aggregates = user_aggregate_dict[user_id]
+                                eventSum = eventSum + curr_user_aggregates['eventSum']
+                                countrySet = curr_user_aggregates['countrySet']
+                                countrySet.add(item["country"])
+                                user_aggregate_dict[user_id]['eventSum'] = eventSum
+                                user_aggregate_dict[user_id]['countrySet'] = countrySet
+                            else:
+                                user_aggregate_dict[user_id] = {'eventSum':eventSum, 'countrySet':countrySet}
+                            pc_dict[user_id].set_nevents(eventSum)
+                            countryset_as_string = ','.join("'{0}'".format(x) for x in countrySet)
+                            pc_dict[user_id].set_final_cc_cname("[" + countryset_as_string + "]")
+                            #pc_dict[user_id].set_last_event(item["last_event"])
+                            #pc_dict[user_id].set_nevents(item["eventSum"])
+                            #pc_dict[user_id].set_final_cc_cname(item["countrySet"])
+                        else:
+                            utils.log("Context.user_id: %s does not exist in {auth_user}." % user_id)
+                    except TypeError as err:
+                        print "error %s item %s" % (err.message, item)
+
+                # Store aggregate data to file as a pickle
+                with open(user_aggregate_dict_file, 'wb') as handle:
+                    pickle.dump(user_aggregate_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
                 # Trying if looping is going to be fasters than a MongoDB query until Mongo is sharded
                 '''
                 user_events = self.mongo_collection.find( { "context.course_id": pc_course_id }, { "context.user_id": 1, "country": 1 }, allowDiskUse=True)
