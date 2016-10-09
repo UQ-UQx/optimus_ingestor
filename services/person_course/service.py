@@ -325,8 +325,8 @@ class PersonCourse(base_service.BaseService):
                 # Tracking logs
                 utils.log("{logs}")
                 self.mongo_dbname = "logs"
-                #self.mongo_collectionname = "clickstream"
-                self.mongo_collectionname = "clickstream_delta"
+                self.mongo_collectionname = "clickstream"
+                #self.mongo_collectionname = "clickstream_delta"
                 #self.mongo_collectionname = "clickstream_hypers_301x_sample"
                 self.connect_to_mongo(self.mongo_dbname, self.mongo_collectionname)
 
@@ -342,7 +342,7 @@ class PersonCourse(base_service.BaseService):
 
                 user_aggregate_dict = {}
                 # Load user_aggregate_dict if file exists for the course
-                user_aggregate_dict_file = "/mnt/volume/aggregates/%s.pickle" % (course_id) #todo add path to config
+                user_aggregate_dict_file = "/mnt/volume/aggregates_all/%s.pickle" % (course_id) #todo add path to config
                 if os.path.isfile(user_aggregate_dict_file):
                     with open(user_aggregate_dict_file, 'rb') as handle:
                         user_aggregate_dict = pickle.load(handle)
