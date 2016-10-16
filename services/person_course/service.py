@@ -96,7 +96,8 @@ class PersonCourse(base_service.BaseService):
             print self.courses.items()
             for course_id, course in self.courses.items():
                 print "running", course_id
-                if (course_id not in ['employ_101x_1T2016', 'ielts_x_3T2015', 'meta_101x_1T2016', 'think_101x_1T2014', 'think_101x_1T2016', 'tropic_101x_1T2014']):
+                if (course_id not in ['employ_101x_1T2016.pickle', 'hypers_301x_1T2014.pickle', 'hypers_301x_1T2015.pickle', 'hypers_301x_1T2016.pickle', 'ielts_x_3T2015.pickle',
+                    'meta_101x_1T2016.pickle', 'think_101x_1T2014.pickle', 'think_101x_1T2016.pickle', 'tropic_101x_1T2014.pickle', 'write_101x_1T2016.pickle', 'write_101x_2T2015.pickle']):
                     # Get chapters from course info
                     json_file = course['dbname'].replace("_", "-") + '.json'
                     courseinfo = self.loadcourseinfo(json_file)
