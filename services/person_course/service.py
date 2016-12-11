@@ -96,7 +96,8 @@ class PersonCourse(base_service.BaseService):
             print self.courses.items()
             for course_id, course in self.courses.items():
                 print "running", course_id
-                if (course_id not in ['able_101x_1T2016', 'bioimg_101x_1T2015', 'crime_101x_1T2016', 'hypers_301x_1T2014', 'hypers_301x_1T2016', 'meta_101x_1T2016', 'think_101x_1T2014', 'think_101x_2T2015', 'write_101x_1T2016', 'bioimg_101x_1T2014', 'bioimg_101x_1T2016', 'employ_101x_1T2016', 'hypers_301x_1T2015', 'ielts_x_3T2015', 'teams_101x_1T2016', 'think_101x_1T2016', 'tropic_101x_1T2014', 'write_101x_2T2015']):
+                #if (course_id not in ['able_101x_1T2016', 'bioimg_101x_1T2015', 'crime_101x_1T2016', 'hypers_301x_1T2014', 'hypers_301x_1T2016', 'meta_101x_1T2016', 'think_101x_1T2014', 'think_101x_2T2015', 'write_101x_1T2016', 'bioimg_101x_1T2014', 'bioimg_101x_1T2016', 'employ_101x_1T2016', 'hypers_301x_1T2015', 'ielts_x_3T2015', 'teams_101x_1T2016', 'think_101x_1T2016', 'tropic_101x_1T2014', 'write_101x_2T2015']):
+                if (course_id not in []):
 
                     # Get chapters from course info
                     json_file = course['dbname'].replace("_", "-") + '.json'
@@ -322,7 +323,7 @@ class PersonCourse(base_service.BaseService):
                         else:
                             utils.log("Author id: %s does not exist in {auth_user}." % user_id)
 
-
+                    '''
                     # Tracking logs
                     utils.log("{logs}")
                     self.mongo_dbname = "logs"
@@ -334,13 +335,14 @@ class PersonCourse(base_service.BaseService):
                     # Simplify Mongo Aggregate Queries
                     # split up finding the country codes and the total events and simplify by removing sort and the time of the last event
                     '''
+                    '''
                     user_events = self.mongo_collection.aggregate([
                         {"$match": {"context.course_id": pc_course_id}},
                         {"$sort": {"time": 1}},
                         {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
                     ], allowDiskUse=True)  # ['result']
                     '''
-
+                    '''
                     user_aggregate_dict = {}
                     # Load user_aggregate_dict if file exists for the course
                     user_aggregate_dict_file = "/mnt/volume/aggregates_all/%s.pickle" % (course_id) #todo add path to config
@@ -387,6 +389,7 @@ class PersonCourse(base_service.BaseService):
                         pickle.dump(user_aggregate_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
                     # Trying if looping is going to be fasters than a MongoDB query until Mongo is sharded
+                    '''
                     '''
                     user_events = self.mongo_collection.find( { "context.course_id": pc_course_id }, { "context.user_id": 1, "country": 1 }, allowDiskUse=True)
 
