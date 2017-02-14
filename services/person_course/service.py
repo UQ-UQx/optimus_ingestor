@@ -323,7 +323,7 @@ class PersonCourse(base_service.BaseService):
                         else:
                             utils.log("Author id: %s does not exist in {auth_user}." % user_id)
 
-                    '''
+
                     # Tracking logs
                     utils.log("{logs}")
                     self.mongo_dbname = "logs"
@@ -334,7 +334,7 @@ class PersonCourse(base_service.BaseService):
 
                     # Simplify Mongo Aggregate Queries
                     # split up finding the country codes and the total events and simplify by removing sort and the time of the last event
-                    '''
+
                     '''
                     user_events = self.mongo_collection.aggregate([
                         {"$match": {"context.course_id": pc_course_id}},
@@ -342,7 +342,7 @@ class PersonCourse(base_service.BaseService):
                         {"$group": {"_id": "$context.user_id", "eventSum": {"$sum": 1}, "last_event": {"$last": "$time"}}}
                     ], allowDiskUse=True)  # ['result']
                     '''
-                    '''
+
                     user_aggregate_dict = {}
                     # Load user_aggregate_dict if file exists for the course
                     user_aggregate_dict_file = "/mnt/volume/aggregates_all/%s.pickle" % (course_id) #todo add path to config
@@ -389,7 +389,6 @@ class PersonCourse(base_service.BaseService):
                         pickle.dump(user_aggregate_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
                     # Trying if looping is going to be fasters than a MongoDB query until Mongo is sharded
-                    '''
                     '''
                     user_events = self.mongo_collection.find( { "context.course_id": pc_course_id }, { "context.user_id": 1, "country": 1 }, allowDiskUse=True)
 
