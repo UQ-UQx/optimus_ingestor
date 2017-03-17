@@ -95,7 +95,7 @@ def get_files(path):
     #    if os.path.isdir(os.path.join(main_path, subdir)):
     for filename in os.listdir(main_path):
         extension = os.path.splitext(filename)[1]
-        if extension == '.log':
+        if (extension == '.log') and ("edge" not in filename):
             pathvars = os.path.join(main_path, filename).split('/')
             ignore_check = pathvars[len(pathvars)-2] + "/" + pathvars[len(pathvars)-1]
             if ignore_check not in ignore_dates:
