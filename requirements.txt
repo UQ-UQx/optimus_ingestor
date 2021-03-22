@@ -6,7 +6,7 @@ pep8==1.4.6
 pycountry==1.6
 pymongo==2.6.3
 python-dateutil==2.1
-lxml==2.3.2
+lxml==4.6.3
 python-memcached==1.53
 python-termstyle==0.1.10
 requests==2.2.1
