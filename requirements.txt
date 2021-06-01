@@ -14,6 +14,6 @@ simplejson==3.3.3
 sqlparse==0.1.10
 tendo==0.2.6
 ua-parser==0.3.5
-urllib3==1.8.2
+urllib3==1.26.5
 virtualenv==1.11.4
 apache-log-parser
